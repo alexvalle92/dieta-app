@@ -9,7 +9,7 @@ export async function POST() {
     const fakePatients = [
       {
         name: 'Maria Silva',
-        cpf: '123.456.789-01',
+        cpf: '12345678901',
         email: 'maria.silva@email.com',
         phone: '(11) 98765-4321',
         password: defaultPassword,
@@ -22,7 +22,7 @@ export async function POST() {
       },
       {
         name: 'João Santos',
-        cpf: '234.567.890-12',
+        cpf: '23456789012',
         email: 'joao.santos@email.com',
         phone: '(21) 97654-3210',
         password: defaultPassword,
@@ -35,7 +35,7 @@ export async function POST() {
       },
       {
         name: 'Ana Paula Oliveira',
-        cpf: '345.678.901-23',
+        cpf: '34567890123',
         email: 'ana.oliveira@email.com',
         phone: '(31) 96543-2109',
         password: defaultPassword,
@@ -48,7 +48,7 @@ export async function POST() {
       },
       {
         name: 'Carlos Eduardo Lima',
-        cpf: '456.789.012-34',
+        cpf: '45678901234',
         email: 'carlos.lima@email.com',
         phone: '(41) 95432-1098',
         password: defaultPassword,
@@ -61,7 +61,7 @@ export async function POST() {
       },
       {
         name: 'Fernanda Costa',
-        cpf: '567.890.123-45',
+        cpf: '56789012345',
         email: 'fernanda.costa@email.com',
         phone: '(51) 94321-0987',
         password: defaultPassword,
