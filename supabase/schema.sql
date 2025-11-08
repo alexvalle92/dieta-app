@@ -1,6 +1,15 @@
 -- Extended schema for NutriPlan
 -- This extends the existing patients and payments tables
 
+-- Create or replace update_updated_at_column function
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
 -- Add password field to existing patients table
 ALTER TABLE patients
 ADD COLUMN IF NOT EXISTS password TEXT NOT NULL DEFAULT '';
@@ -55,20 +64,29 @@ CREATE INDEX IF NOT EXISTS idx_meal_plans_status ON meal_plans(status);
 CREATE INDEX IF NOT EXISTS idx_recipes_category ON recipes(category);
 
 -- Update triggers for updated_at
-CREATE TRIGGER IF NOT EXISTS update_admins_updated_at
-  BEFORE UPDATE ON admins
-  FOR EACH ROW
-  EXECUTE FUNCTION update_updated_at_column();
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'update_admins_updated_at') THEN
+    CREATE TRIGGER update_admins_updated_at
+      BEFORE UPDATE ON admins
+      FOR EACH ROW
+      EXECUTE FUNCTION update_updated_at_column();
+  END IF;
 
-CREATE TRIGGER IF NOT EXISTS update_meal_plans_updated_at
-  BEFORE UPDATE ON meal_plans
-  FOR EACH ROW
-  EXECUTE FUNCTION update_updated_at_column();
+  IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'update_meal_plans_updated_at') THEN
+    CREATE TRIGGER update_meal_plans_updated_at
+      BEFORE UPDATE ON meal_plans
+      FOR EACH ROW
+      EXECUTE FUNCTION update_updated_at_column();
+  END IF;
 
-CREATE TRIGGER IF NOT EXISTS update_recipes_updated_at
-  BEFORE UPDATE ON recipes
-  FOR EACH ROW
-  EXECUTE FUNCTION update_updated_at_column();
+  IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'update_recipes_updated_at') THEN
+    CREATE TRIGGER update_recipes_updated_at
+      BEFORE UPDATE ON recipes
+      FOR EACH ROW
+      EXECUTE FUNCTION update_updated_at_column();
+  END IF;
+END $$;
 
 -- Comments on new tables
 COMMENT ON TABLE admins IS 'Tabela de administradores (nutricionistas)';

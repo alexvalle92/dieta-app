@@ -70,10 +70,11 @@ export default function SetupPage() {
       const seedData = await seedResponse.json()
 
       if (!seedResponse.ok) {
-        console.error('Error seeding:', seedData.error)
-      } else {
-        setSuccess(`Administrador e ${seedData.patients?.length || 5} pacientes criados com sucesso! Redirecionando...`)
+        setSeeding(false)
+        throw new Error(`Erro ao criar pacientes: ${seedData.error}`)
       }
+
+      setSuccess(`Administrador e ${seedData.patients?.length || 5} pacientes criados com sucesso! Redirecionando...`)
 
       setTimeout(() => {
         router.push('/admin/login')
