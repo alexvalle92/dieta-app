@@ -19,7 +19,6 @@
    - `/api/setup/check` - Verifica se admin existe
    - `/api/setup/admin` - Cria o primeiro admin
    - `/api/setup/seed` - Popula com 5 pacientes fictícios
-   - `/api/setup/init-db` - Inicializa schema (alternativa)
 
 5. **Página de Onboarding**
    - `/setup` - Formulário para cadastrar primeira nutricionista
