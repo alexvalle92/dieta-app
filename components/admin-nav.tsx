@@ -2,11 +2,24 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutDashboard, Users, FileText, BookOpen, LogOut } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { useEffect, useState } from "react"
+import { LayoutDashboard, Users, FileText, BookOpen } from "lucide-react"
+import { UserMenu } from "@/components/user-menu"
 
 export function AdminNav() {
   const pathname = usePathname()
+  const [userData, setUserData] = useState<{ name: string; email: string } | null>(null)
+
+  useEffect(() => {
+    fetch('/api/auth/session')
+      .then(res => res.json())
+      .then(data => {
+        if (data.user) {
+          setUserData({ name: data.user.name || 'Admin', email: data.user.email })
+        }
+      })
+      .catch(() => {})
+  }, [])
 
   const navItems = [
     { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -44,10 +57,13 @@ export function AdminNav() {
               })}
             </div>
           </div>
-          <Button variant="ghost" size="sm" className="gap-2">
-            <LogOut className="h-4 w-4" />
-            <span className="hidden sm:inline">Sair</span>
-          </Button>
+          {userData && (
+            <UserMenu 
+              userName={userData.name} 
+              userEmail={userData.email}
+              userType="admin"
+            />
+          )}
         </div>
       </div>
     </nav>

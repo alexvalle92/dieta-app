@@ -3,9 +3,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { FileText, Calendar, TrendingDown, BookOpen } from "lucide-react"
 import Link from "next/link"
+import { getSession } from "@/lib/auth"
+import { redirect } from "next/navigation"
 
-export default function ClientDashboardPage() {
-  // Mock data - substituir com dados reais
+export default async function ClientDashboardPage() {
+  const session = await getSession()
+  
+  if (!session) {
+    redirect('/cliente/login')
+  }
+
   const stats = {
     planosAtivos: 2,
     ultimaAtualizacao: "15/01/2025",
@@ -28,12 +35,14 @@ export default function ClientDashboardPage() {
     },
   ]
 
+  const firstName = session.name?.split(' ')[0] || 'Cliente'
+
   return (
     <div className="min-h-screen bg-background">
       <ClientNav />
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Bem-vindo de volta!</h1>
+          <h1 className="text-3xl font-bold text-foreground">Olá, {firstName}! 👋</h1>
           <p className="mt-2 text-muted-foreground">Acompanhe seu progresso e acesse seus planos alimentares</p>
         </div>
 

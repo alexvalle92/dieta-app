@@ -2,11 +2,24 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, BookOpen, FileText, LogOut } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { useEffect, useState } from "react"
+import { Home, BookOpen, FileText } from "lucide-react"
+import { UserMenu } from "@/components/user-menu"
 
 export function ClientNav() {
   const pathname = usePathname()
+  const [userData, setUserData] = useState<{ name: string; email?: string } | null>(null)
+
+  useEffect(() => {
+    fetch('/api/auth/session')
+      .then(res => res.json())
+      .then(data => {
+        if (data.user) {
+          setUserData({ name: data.user.name || 'Usuário', email: data.user.email })
+        }
+      })
+      .catch(() => {})
+  }, [])
 
   const navItems = [
     { href: "/cliente/dashboard", label: "Início", icon: Home },
@@ -43,10 +56,14 @@ export function ClientNav() {
               })}
             </div>
           </div>
-          <Button variant="ghost" size="sm" className="gap-2">
-            <LogOut className="h-4 w-4" />
-            <span className="hidden sm:inline">Sair</span>
-          </Button>
+          {userData && (
+            <UserMenu 
+              userName={userData.name} 
+              userEmail={userData.email}
+              userType="patient"
+              showMyDataLink={true}
+            />
+          )}
         </div>
       </div>
     </nav>
