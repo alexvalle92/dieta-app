@@ -8,6 +8,14 @@ The application addresses the problem of patient non-adherence to high-cost meal
 
 ## Recent Changes
 
+**Bug Fix: Login Functionality (Completed - Nov 2025):**
+- Fixed login issue where CPFs were stored with formatting but searched without
+- Updated seed to store CPFs and phone numbers without formatting (numbers only)
+- Login now works correctly for both client and admin portals
+- Error messages display properly when credentials are incorrect
+- Test credentials: CPF `12345678901` / password `senha123` for clients
+- Test credentials: Email `nutritamilivalle@gmail.com` / password `admin123` for admin
+
 **F3: Patient CRUD & Dashboards (Completed - Nov 2025):**
 - Implemented complete CRUD operations for patients (admin-only)
 - Created user menu component with avatar/initials for both portals
