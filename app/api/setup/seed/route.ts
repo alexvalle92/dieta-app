@@ -6,12 +6,23 @@ export async function POST() {
   try {
     const defaultPassword = await bcrypt.hash('senha123', 10)
 
+    const { data: existingPatients } = await supabaseAdmin
+      .from('patients')
+      .select('cpf')
+
+    if (existingPatients && existingPatients.length > 0) {
+      await supabaseAdmin
+        .from('patients')
+        .delete()
+        .neq('cpf', '')
+    }
+
     const fakePatients = [
       {
         name: 'Maria Silva',
         cpf: '12345678901',
         email: 'maria.silva@email.com',
-        phone: '(11) 98765-4321',
+        phone: '11987654321',
         password: defaultPassword,
         quiz_responses: {
           peso: 75,
@@ -24,7 +35,7 @@ export async function POST() {
         name: 'João Santos',
         cpf: '23456789012',
         email: 'joao.santos@email.com',
-        phone: '(21) 97654-3210',
+        phone: '21976543210',
         password: defaultPassword,
         quiz_responses: {
           peso: 90,
@@ -37,7 +48,7 @@ export async function POST() {
         name: 'Ana Paula Oliveira',
         cpf: '34567890123',
         email: 'ana.oliveira@email.com',
-        phone: '(31) 96543-2109',
+        phone: '31965432109',
         password: defaultPassword,
         quiz_responses: {
           peso: 68,
@@ -50,7 +61,7 @@ export async function POST() {
         name: 'Carlos Eduardo Lima',
         cpf: '45678901234',
         email: 'carlos.lima@email.com',
-        phone: '(41) 95432-1098',
+        phone: '41954321098',
         password: defaultPassword,
         quiz_responses: {
           peso: 85,
@@ -63,7 +74,7 @@ export async function POST() {
         name: 'Fernanda Costa',
         cpf: '56789012345',
         email: 'fernanda.costa@email.com',
-        phone: '(51) 94321-0987',
+        phone: '51943210987',
         password: defaultPassword,
         quiz_responses: {
           peso: 72,
