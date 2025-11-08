@@ -6,9 +6,19 @@ NutriPlan is a mobile-first web application designed to provide automated, perso
 
 The application addresses the problem of patient non-adherence to high-cost meal plans by providing an automated, accessible alternative priced between R$29-69 per plan.
 
-## Recent Changes (F1 Completed - Nov 2025)
+## Recent Changes
 
-**Database Setup (F1):**
+**F2: Login Functionality (Completed - Nov 2025):**
+- Implemented secure authentication with JWT-signed sessions using jose library
+- Created login pages for patients (CPF-based) and administrators (email-based)
+- Built password reset functionality for self-service and admin-managed resets
+- Added middleware to protect client and admin routes automatically
+- Implemented patient creation API for future integration
+- All authentication uses bcrypt password hashing with 10 rounds
+- JWT_SECRET validation ensures minimum 32-character keys for security
+- Sessions use HTTP-only cookies with SameSite protection
+
+**F1: Database Setup (Completed - Nov 2025):**
 - Extended Supabase schema with admins, meal_plans, and recipes tables
 - Added password field to patients table for authentication
 - Created server-side Supabase admin client for secure operations
