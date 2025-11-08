@@ -8,6 +8,17 @@ The application addresses the problem of patient non-adherence to high-cost meal
 
 ## Recent Changes
 
+**F3: Patient CRUD & Dashboards (Completed - Nov 2025):**
+- Implemented complete CRUD operations for patients (admin-only)
+- Created user menu component with avatar/initials for both portals
+- Added patient listing page with real-time search (sanitized against SQL injection)
+- Built PatientForm component for create/edit with CPF and phone formatting
+- Implemented delete confirmation dialog with cascade warning
+- Created /cliente/meus-dados page showing personal data from database
+- Updated dashboards to show personalized user names from session
+- All admin APIs verify userType === 'admin' for security
+- Search functionality uses server-side filtering with proper sanitization
+
 **F2: Login Functionality (Completed - Nov 2025):**
 - Implemented secure authentication with JWT-signed sessions using jose library
 - Created login pages for patients (CPF-based) and administrators (email-based)
