@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
+import { Toaster } from "sonner"
 import Link from "next/link"
 
 interface PatientFormProps {
@@ -175,6 +176,7 @@ export function PatientForm({ patient, mode }: PatientFormProps) {
         <Button type="submit" className="flex-1" disabled={isLoading}>
           {isLoading ? 'Salvando...' : mode === 'create' ? 'Cadastrar Paciente' : 'Atualizar Paciente'}
         </Button>
+        <Toaster richColors position="top-center" />
         <Link href="/admin/pacientes" className="flex-1">
           <Button type="button" variant="outline" className="w-full bg-transparent" disabled={isLoading}>
             Cancelar

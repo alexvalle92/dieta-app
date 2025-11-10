@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Shield } from "lucide-react"
+import { Toaster } from "sonner"
 
 export default function AdminLoginPage() {
   const router = useRouter()
@@ -82,6 +83,7 @@ export default function AdminLoginPage() {
             <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
               {isLoading ? 'Entrando...' : 'Entrar no Painel'}
             </Button>
+            <Toaster richColors position="top-center" />
             <div className="text-center text-sm text-muted-foreground">
               <Link href="/" className="hover:text-primary hover:underline">
                 Voltar para início

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Toaster } from "sonner"
 
 export default function ClientLoginPage() {
   const router = useRouter()
@@ -102,6 +103,7 @@ export default function ClientLoginPage() {
             <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
               {isLoading ? 'Entrando...' : 'Entrar'}
             </Button>
+            <Toaster richColors position="top-center" />
             <div className="text-center text-sm text-muted-foreground">
               <Link href="/" className="hover:text-primary hover:underline">
                 Voltar para início
