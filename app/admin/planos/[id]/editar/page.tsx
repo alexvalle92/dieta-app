@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { use, useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { AdminNav } from "@/components/admin-nav"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -51,7 +51,8 @@ interface MealPlan {
   }
 }
 
-export default function EditarPlanoPage({ params }: { params: { id: string } }) {
+export default function EditarPlanoPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params)
   const router = useRouter()
   const [mealPlan, setMealPlan] = useState<MealPlan | null>(null)
   const [patients, setPatients] = useState<Patient[]>([])
@@ -77,11 +78,11 @@ export default function EditarPlanoPage({ params }: { params: { id: string } }) 
   useEffect(() => {
     fetchMealPlan()
     fetchPatients()
-  }, [params.id])
+  }, [id])
 
   const fetchMealPlan = async () => {
     try {
-      const response = await fetch(`/api/admin/meal-plans/${params.id}`)
+      const response = await fetch(`/api/admin/meal-plans/${id}`)
       const data = await response.json()
 
       if (response.ok) {
@@ -210,7 +211,7 @@ export default function EditarPlanoPage({ params }: { params: { id: string } }) 
         plan_data
       }
 
-      const response = await fetch(`/api/admin/meal-plans/${params.id}`, {
+      const response = await fetch(`/api/admin/meal-plans/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -238,7 +239,7 @@ export default function EditarPlanoPage({ params }: { params: { id: string } }) 
     setIsDeleting(true)
     
     try {
-      const response = await fetch(`/api/admin/meal-plans/${params.id}`, {
+      const response = await fetch(`/api/admin/meal-plans/${id}`, {
         method: 'DELETE',
       })
 

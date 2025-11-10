@@ -4,7 +4,7 @@ import { requireAuth } from '@/lib/auth'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await requireAuth('admin')
@@ -16,6 +16,7 @@ export async function GET(
       )
     }
 
+    const { id } = await params
     const supabase = supabaseAdmin
 
     const { data: mealPlan, error } = await supabase
@@ -29,7 +30,7 @@ export async function GET(
           cpf
         )
       `)
-      .eq('id', params.id)
+      .eq('id', id)
       .single()
 
     if (error || !mealPlan) {
@@ -51,7 +52,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await requireAuth('admin')
@@ -63,6 +64,7 @@ export async function PUT(
       )
     }
 
+    const { id } = await params
     const body = await request.json()
     const { patient_id, title, description, start_date, end_date, status, plan_data } = body
 
@@ -85,7 +87,7 @@ export async function PUT(
     const { data: existingPlan, error: existingError } = await supabase
       .from('meal_plans')
       .select('id')
-      .eq('id', params.id)
+      .eq('id', id)
       .single()
 
     if (existingError || !existingPlan) {
@@ -124,7 +126,7 @@ export async function PUT(
     const { data: mealPlan, error } = await supabase
       .from('meal_plans')
       .update(updateData)
-      .eq('id', params.id)
+      .eq('id', id)
       .select(`
         *,
         patient:patients (
@@ -156,7 +158,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await requireAuth('admin')
@@ -168,12 +170,13 @@ export async function DELETE(
       )
     }
 
+    const { id } = await params
     const supabase = supabaseAdmin
 
     const { data: existingPlan, error: existingError } = await supabase
       .from('meal_plans')
       .select('id, title')
-      .eq('id', params.id)
+      .eq('id', id)
       .single()
 
     if (existingError || !existingPlan) {
@@ -186,7 +189,7 @@ export async function DELETE(
     const { error } = await supabase
       .from('meal_plans')
       .delete()
-      .eq('id', params.id)
+      .eq('id', id)
 
     if (error) {
       console.error('Error deleting meal plan:', error)
