@@ -8,6 +8,16 @@ The application addresses the problem of patient non-adherence to high-cost meal
 
 ## Recent Changes
 
+**Password Change Functionality (Completed - Nov 2025):**
+- Added "Alterar Senha" option to user menu for both client and admin portals
+- Accessible from top-right user menu dropdown alongside "Meus Dados" and "Sair"
+- Client password change page: `/cliente/recuperar-senha`
+- Admin password change page: `/admin/alterar-senha` (new)
+- New API endpoint: `POST /api/admin/change-password` for admin self-service password changes
+- Both portals validate current password before allowing change
+- Password requirements: minimum 6 characters with confirmation field
+- Success/error toast notifications on password update
+
 **Toast Notifications Fix (Completed - Nov 2025):**
 - Fixed toast notifications to appear on destination pages instead of login pages
 - Added `<Toaster />` component to both dashboards (cliente and admin)

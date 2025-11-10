@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import { useState } from "react"
-import { LogOut, User } from "lucide-react"
+import { LogOut, User, KeyRound } from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {
   DropdownMenu,
@@ -60,6 +60,11 @@ export function UserMenu({ userName, userEmail, userType, showMyDataLink = false
     }
   }
 
+  const handleChangePassword = () => {
+    const redirectUrl = userType === 'admin' ? '/admin/alterar-senha' : '/cliente/recuperar-senha'
+    router.push(redirectUrl)
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -82,14 +87,16 @@ export function UserMenu({ userName, userEmail, userType, showMyDataLink = false
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         {showMyDataLink && (
-          <>
-            <DropdownMenuItem onClick={handleMyData}>
-              <User className="mr-2 h-4 w-4" />
-              <span>Meus Dados</span>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-          </>
+          <DropdownMenuItem onClick={handleMyData}>
+            <User className="mr-2 h-4 w-4" />
+            <span>Meus Dados</span>
+          </DropdownMenuItem>
         )}
+        <DropdownMenuItem onClick={handleChangePassword}>
+          <KeyRound className="mr-2 h-4 w-4" />
+          <span>Alterar Senha</span>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout} disabled={isLoggingOut}>
           <LogOut className="mr-2 h-4 w-4" />
           <span>{isLoggingOut ? 'Saindo...' : 'Sair'}</span>
