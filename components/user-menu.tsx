@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import { useState } from "react"
-import { LogOut, User } from "lucide-react"
+import { LogOut, User, Lock } from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {
   DropdownMenu,
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
+import { ChangePasswordDialog } from "@/components/change-password-dialog"
 
 interface UserMenuProps {
   userName: string
@@ -25,6 +26,7 @@ interface UserMenuProps {
 export function UserMenu({ userName, userEmail, userType, showMyDataLink = false }: UserMenuProps) {
   const router = useRouter()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false)
 
   const getInitials = (name: string) => {
     const parts = name.trim().split(' ')
@@ -60,8 +62,18 @@ export function UserMenu({ userName, userEmail, userType, showMyDataLink = false
     }
   }
 
+  const handleChangePassword = () => {
+    setIsChangePasswordOpen(true)
+  }
+
   return (
-    <DropdownMenu>
+    <>
+      <ChangePasswordDialog
+        open={isChangePasswordOpen}
+        onOpenChange={setIsChangePasswordOpen}
+        userType={userType}
+      />
+      <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-10 w-10 rounded-full">
           <Avatar className="h-10 w-10">
@@ -90,11 +102,17 @@ export function UserMenu({ userName, userEmail, userType, showMyDataLink = false
             <DropdownMenuSeparator />
           </>
         )}
+        <DropdownMenuItem onClick={handleChangePassword}>
+          <Lock className="mr-2 h-4 w-4" />
+          <span>Alterar Senha</span>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout} disabled={isLoggingOut}>
           <LogOut className="mr-2 h-4 w-4" />
           <span>{isLoggingOut ? 'Saindo...' : 'Sair'}</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+    </>
   )
 }

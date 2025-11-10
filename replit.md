@@ -8,6 +8,16 @@ The application addresses the problem of patient non-adherence to high-cost meal
 
 ## Recent Changes
 
+**Password Change Feature (Completed - Nov 2025):**
+- Added password change functionality to user menu for both patients and administrators
+- Created reusable ChangePasswordDialog component with validation
+- Implemented /api/admin/change-password API for administrators
+- Patient password change uses existing /api/auth/reset-password API
+- Menu now includes "Alterar Senha" option for all authenticated users
+- Validates current password before allowing change
+- Enforces minimum password length of 6 characters
+- Shows/hides password visibility toggle for better UX
+
 **Toast Notifications Fix (Completed - Nov 2025):**
 - Fixed toast notifications to appear on destination pages instead of login pages
 - Added `<Toaster />` component to both dashboards (cliente and admin)
