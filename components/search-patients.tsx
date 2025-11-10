@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter, useSearchParams } from "next/navigation"
-import { useState, useTransition } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
@@ -9,24 +9,32 @@ import { Card, CardContent } from "@/components/ui/card"
 export function SearchPatients() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [isPending, startTransition] = useTransition()
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '')
+  const debounceTimer = useRef<NodeJS.Timeout | undefined>(undefined)
 
-  const handleSearch = (value: string) => {
-    setSearchTerm(value)
-    
-    startTransition(() => {
+  useEffect(() => {
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current)
+    }
+
+    debounceTimer.current = setTimeout(() => {
       const params = new URLSearchParams(searchParams.toString())
       
-      if (value) {
-        params.set('search', value)
+      if (searchTerm) {
+        params.set('search', searchTerm)
       } else {
         params.delete('search')
       }
       
       router.push(`/admin/pacientes?${params.toString()}`)
-    })
-  }
+    }, 500)
+
+    return () => {
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current)
+      }
+    }
+  }, [searchTerm, router, searchParams])
 
   return (
     <Card className="mb-6">
@@ -37,8 +45,7 @@ export function SearchPatients() {
             placeholder="Buscar por nome, email ou CPF..." 
             className="pl-10"
             value={searchTerm}
-            onChange={(e) => handleSearch(e.target.value)}
-            disabled={isPending}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
       </CardContent>
