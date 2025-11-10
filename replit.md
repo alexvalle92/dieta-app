@@ -169,6 +169,21 @@ Preferred communication style: Simple, everyday language.
 - Row Level Security (RLS) for data protection
 - Service role and anonymous key authentication
 
+### Environment Variables Management
+
+**AWS Systems Manager Parameter Store**
+- Centralized secrets management for production
+- Secure storage of API keys and credentials
+- Automatic retrieval via AWS SDK (`@aws-sdk/client-ssm`)
+- Development uses local `.env.local` file
+- See `AWS_SETUP.md` for detailed configuration guide
+
+**Configuration Strategy:**
+- **Local Development**: Variables loaded from `.env.local`
+- **Production (Replit)**: Automatically fetched from AWS Parameter Store when `NODE_ENV=production`
+- **Required AWS Secrets in Replit**: `AWS_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`
+- **Parameter Prefix**: `/nutriplan/` (configurable via `AWS_PARAMETER_PREFIX`)
+
 ### Payment Integration (Planned)
 
 **Asaas** - Brazilian payment gateway
