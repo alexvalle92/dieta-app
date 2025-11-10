@@ -8,6 +8,22 @@ The application addresses the problem of patient non-adherence to high-cost meal
 
 ## Recent Changes
 
+**F4: Meal Plans CRUD (Completed - Nov 2025):**
+- Implemented complete CRUD operations for meal plans (admin-only)
+- Created APIs: GET /api/admin/meal-plans (list with search), POST (create), GET/PUT/DELETE /api/admin/meal-plans/[id]
+- Search functionality filters plans by title or patient name (server-side filtering for security)
+- Built listing page with real-time search, status badges, and formatted dates
+- Created meal plan creation form with dynamic meal management (add/remove meals)
+- Implemented edit form with plan data prefilling and status management
+- Added delete functionality with confirmation dialog
+- Plan data stored in JSONB with flexible structure (calories, meals array, observations)
+- Each meal includes: name, time, calories, and foods
+- Full form validations (required fields, date ranges, meal names)
+- Date inputs for start_date and end_date with proper validation
+- Status management: active, completed, cancelled
+- Integration with patients table for plan assignment
+- Toast notifications for all CRUD operations
+
 **Password Change Feature (Completed - Nov 2025):**
 - Added password change functionality to user menu for both patients and administrators
 - Created reusable ChangePasswordDialog component with validation
