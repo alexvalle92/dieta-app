@@ -1,9 +1,52 @@
+'use client'
+
 import { AdminNav } from "@/components/admin-nav"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Users, FileText, BookOpen, TrendingUp } from "lucide-react"
+import { useEffect, useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { toast, Toaster } from "sonner"
 
 export default function AdminDashboardPage() {
-  // Mock data - substituir com dados reais
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const response = await fetch('/api/auth/session')
+        if (!response.ok) {
+          router.push('/admin/login')
+          return
+        }
+        const data = await response.json()
+        if (data.user?.userType !== 'admin') {
+          router.push('/admin/login')
+          return
+        }
+      } catch (error) {
+        router.push('/admin/login')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    checkSession()
+  }, [router])
+
+  useEffect(() => {
+    if (searchParams.get('login') === 'success') {
+      const userName = searchParams.get('name') || 'Admin'
+      toast.success(`Bem-vindo, ${userName}!`)
+      
+      window.history.replaceState({}, '', '/admin/dashboard')
+    }
+  }, [searchParams])
+
+  if (isLoading) {
+    return null
+  }
+
   const stats = {
     totalPacientes: 48,
     planosAtivos: 32,
@@ -36,6 +79,7 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <Toaster richColors position="top-center" />
       <AdminNav />
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8">

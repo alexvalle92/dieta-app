@@ -1,16 +1,50 @@
+'use client'
+
 import { ClientNav } from "@/components/client-nav"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { FileText, Calendar, TrendingDown, BookOpen } from "lucide-react"
 import Link from "next/link"
-import { getSession } from "@/lib/auth"
-import { redirect } from "next/navigation"
+import { useEffect, useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { toast, Toaster } from "sonner"
 
-export default async function ClientDashboardPage() {
-  const session = await getSession()
-  
-  if (!session) {
-    redirect('/cliente/login')
+export default function ClientDashboardPage() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const [session, setSession] = useState<{ name: string } | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const response = await fetch('/api/auth/session')
+        if (!response.ok) {
+          router.push('/cliente/login')
+          return
+        }
+        const data = await response.json()
+        setSession(data.user)
+      } catch (error) {
+        router.push('/cliente/login')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    checkSession()
+  }, [router])
+
+  useEffect(() => {
+    if (searchParams.get('login') === 'success') {
+      const userName = searchParams.get('name') || 'Cliente'
+      toast.success(`Bem-vindo, ${userName}!`)
+      
+      window.history.replaceState({}, '', '/cliente/dashboard')
+    }
+  }, [searchParams])
+
+  if (isLoading || !session) {
+    return null
   }
 
   const stats = {
@@ -39,6 +73,7 @@ export default async function ClientDashboardPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <Toaster richColors position="top-center" />
       <ClientNav />
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8">

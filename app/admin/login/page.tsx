@@ -35,8 +35,7 @@ export default function AdminLoginPage() {
         return
       }
 
-      toast.success(`Bem-vindo, ${data.user.name}!`)
-      router.push('/admin/dashboard')
+      router.push('/admin/dashboard?login=success&name=' + encodeURIComponent(data.user.name))
     } catch (error) {
       toast.error("Ocorreu um erro ao processar seu login. Tente novamente.")
     } finally {

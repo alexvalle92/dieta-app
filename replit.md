@@ -8,6 +8,14 @@ The application addresses the problem of patient non-adherence to high-cost meal
 
 ## Recent Changes
 
+**Toast Notifications Fix (Completed - Nov 2025):**
+- Fixed toast notifications to appear on destination pages instead of login pages
+- Added `<Toaster />` component to both dashboards (cliente and admin)
+- Added `<Toaster />` component to admin/pacientes page
+- Login success messages now display after redirect using query parameters
+- Messages are automatically cleared from URL after display
+- Converted dashboards to client components for toast support
+
 **Bug Fix: Login Functionality (Completed - Nov 2025):**
 - Fixed login issue where CPFs were stored with formatting but searched without
 - Updated seed to store CPFs and phone numbers without formatting (numbers only)

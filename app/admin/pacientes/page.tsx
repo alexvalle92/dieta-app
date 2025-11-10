@@ -9,6 +9,7 @@ import { redirect } from "next/navigation"
 import { supabaseAdmin } from "@/lib/supabase-server"
 import { SearchPatients } from "@/components/search-patients"
 import { DeletePatientButton } from "@/components/delete-patient-button"
+import { Toaster } from "sonner"
 
 export default async function PacientesPage({ 
   searchParams 
@@ -66,6 +67,7 @@ export default async function PacientesPage({
 
   return (
     <div className="min-h-screen bg-background">
+      <Toaster richColors position="top-center" />
       <AdminNav />
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

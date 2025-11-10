@@ -52,9 +52,7 @@ export default function ClientLoginPage() {
         return
       }
 
-      toast.success(`Bem-vindo, ${data.user.name}!`)
-
-      router.push('/cliente/dashboard')
+      router.push('/cliente/dashboard?login=success&name=' + encodeURIComponent(data.user.name))
     } catch (error) {
       toast.error("Ocorreu um erro ao processar seu login. Tente novamente.")
     } finally {
