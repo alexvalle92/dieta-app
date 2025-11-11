@@ -8,6 +8,16 @@ The application addresses the problem of patient non-adherence to high-cost meal
 
 ## Recent Changes
 
+**Dashboard Improvements (Completed - Nov 2025):**
+- Replaced all mock data with real database statistics in both dashboards
+- Created API GET /api/client/dashboard-stats: fetches patient's plans (active/total), last update, and available recipes
+- Created API GET /api/admin/dashboard-stats: aggregates total patients, active plans, recipes, new patients this month, and growth percentage
+- Client dashboard shows real plan counts, recent plans list with status badges, and quick access navigation
+- Admin dashboard displays accurate metrics with month-over-month growth calculation
+- Added loading states for better UX while fetching data
+- Improved layout with quick action buttons and navigation shortcuts
+- Both dashboards now use authenticated API calls for secure data access
+
 **F5: Recipe Management CRUD (Completed - Nov 2025):**
 - Implemented complete CRUD operations for recipes (admin and client)
 - Created admin APIs: GET /api/admin/recipes (list with search), POST (create), GET/PUT/DELETE /api/admin/recipes/[id]
