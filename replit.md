@@ -8,10 +8,20 @@ The application addresses the problem of patient non-adherence to high-cost meal
 
 ## Recent Changes
 
+**Cliente: Visualização de Planos Alimentares (Completed - Nov 2025):**
+- Implementada página de detalhes do plano (/cliente/planos/[id])
+- Criada API GET /api/client/meal-plans/[id] para buscar plano específico do paciente
+- Página carrega dados reais do banco com validação de propriedade (patient_id)
+- Exibe todas as refeições cadastradas com alimentos, horários e calorias
+- Mostra observações importantes do plano
+- Botão "Baixar PDF" funcional usando window.print()
+- Estilos otimizados para impressão (remove navegação e botões ao imprimir)
+- Estado de loading e tratamento de erro quando plano não existe
+
 **Cliente: Listagem de Planos Alimentares (Completed - Nov 2025):**
 - Implementada tela de listagem de planos para clientes (/cliente/planos)
 - Criada API GET /api/client/meal-plans para buscar planos do paciente logado
-- Página agora mostra dados reais do banco de dados
+- Página mostra dados reais do banco de dados
 - Exibe status (Ativo, Concluído, Cancelado) com badges coloridos
 - Mostra calorias diárias, datas de início/fim formatadas
 - Estado vazio quando não há planos cadastrados
