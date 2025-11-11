@@ -94,7 +94,7 @@ export default function ClientLoginPage() {
               />
             </div>
             <div className="flex items-center justify-between text-sm">
-              <Link href="/cliente/recuperar-senha" className="text-primary hover:underline">
+              <Link href="/cliente/esqueci-senha" className="text-primary hover:underline">
                 Esqueceu a senha?
               </Link>
             </div>
