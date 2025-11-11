@@ -45,7 +45,8 @@ export async function middleware(request: NextRequest) {
 
   if (pathname.startsWith('/cliente') && 
       !pathname.startsWith('/cliente/login') && 
-      !pathname.startsWith('/cliente/recuperar-senha')) {
+      !pathname.startsWith('/cliente/esqueci-senha') && 
+      !pathname.startsWith('/cliente/redefinir-senha')) {
     const session = await getSessionFromRequest(request)
     
     if (!session || session.userType !== 'patient') {
