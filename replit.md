@@ -8,6 +8,21 @@ The application addresses the problem of patient non-adherence to high-cost meal
 
 ## Recent Changes
 
+**F5: Recipe Management CRUD (Completed - Nov 2025):**
+- Implemented complete CRUD operations for recipes (admin and client)
+- Created admin APIs: GET /api/admin/recipes (list with search), POST (create), GET/PUT/DELETE /api/admin/recipes/[id]
+- Created client APIs: GET /api/client/recipes (list with search), GET /api/client/recipes/[id] (view details)
+- Admin recipe management: listing, creation, editing, and deletion with real-time search
+- Recipe structure: title, description, ingredients (array), preparation (text), category, prep_time, servings, calories
+- Dynamic form management for ingredients and preparation steps (add/remove)
+- Client recipe browsing with search functionality
+- Client recipe detail view with print functionality
+- DeleteRecipeButton component for safe recipe deletion with confirmation
+- Full form validations (required fields: title, ingredients, preparation)
+- Toast notifications for all operations
+- Loading states and error handling throughout
+- All mock data replaced with real database integration
+
 **Cliente: Visualização de Planos Alimentares (Completed - Nov 2025):**
 - Implementada página de detalhes do plano (/cliente/planos/[id])
 - Criada API GET /api/client/meal-plans/[id] para buscar plano específico do paciente
