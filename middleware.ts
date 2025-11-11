@@ -39,6 +39,10 @@ async function getSessionFromRequest(request: NextRequest) {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
+  if (pathname.startsWith('/api/')) {
+    return NextResponse.next()
+  }
+
   if (pathname.startsWith('/cliente') && 
       !pathname.startsWith('/cliente/login') && 
       !pathname.startsWith('/cliente/recuperar-senha')) {
