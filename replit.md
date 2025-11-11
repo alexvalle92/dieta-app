@@ -35,6 +35,7 @@ Preferred communication style: Simple, everyday language.
 - **admins**: Nutritionist accounts with professional credentials.
 - **meal_plans**: Personalized nutrition plans linked to patients, with status tracking and flexible JSON storage for plan data.
 - **recipes**: Reusable recipe content including ingredients, preparation, and nutritional metadata.
+- **password_reset_tokens**: Time-limited tokens for password recovery (1-hour expiration), linked to patients with used flag tracking.
 
 **Design Patterns:** Uses JSON columns for flexible data, status enums, timestamp tracking, and UUID primary keys.
 

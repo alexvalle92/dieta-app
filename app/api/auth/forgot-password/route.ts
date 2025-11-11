@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
       .eq('patient_id', patient.id)
       .eq('used', false)
 
-    const insertResult = await supabase
+    const { data: resetTokenData, error: tokenError } = await supabase
       .from('password_reset_tokens')
       .insert({
         patient_id: patient.id,
@@ -51,14 +51,10 @@ export async function POST(request: NextRequest) {
       })
       .select()
 
-    console.log('Insert result:', insertResult)
-    console.log('Insert data:', insertResult.data)
-    console.log('Insert error:', insertResult.error)
-
-    if (insertResult.error) {
-      console.error('Error creating reset token:', insertResult.error)
+    if (tokenError) {
+      console.error('Error creating reset token:', tokenError)
       return NextResponse.json(
-        { error: 'Erro ao gerar link de recuperação' },
+        { error: 'Erro ao gerar link de recuperação. Verifique se a tabela password_reset_tokens foi criada no Supabase.' },
         { status: 500 }
       )
     }

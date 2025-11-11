@@ -73,6 +73,7 @@ Todos os pacientes têm a senha padrão: `senha123`
 - **patients**: Pacientes (já existia, adicionado campo password)
 - **meal_plans**: Planos alimentares
 - **recipes**: Receitas
+- **password_reset_tokens**: Tokens de recuperação de senha (1 hora de validade)
 - **payments**: Pagamentos (já existia)
 
 ## Próximos Passos (F2 em diante)
