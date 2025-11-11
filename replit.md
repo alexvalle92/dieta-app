@@ -8,7 +8,19 @@ The application addresses the problem of patient non-adherence to high-cost meal
 
 ## Recent Changes
 
+**Cliente: Listagem de Planos Alimentares (Completed - Nov 2025):**
+- Implementada tela de listagem de planos para clientes (/cliente/planos)
+- Criada API GET /api/client/meal-plans para buscar planos do paciente logado
+- Página agora mostra dados reais do banco de dados
+- Exibe status (Ativo, Concluído, Cancelado) com badges coloridos
+- Mostra calorias diárias, datas de início/fim formatadas
+- Estado vazio quando não há planos cadastrados
+- Integração completa com autenticação do paciente
+
 **F4: Meal Plans CRUD (Completed - Nov 2025):**
+- Fixed Next.js 15+ params Promise issue in dynamic routes
+- Updated API routes to unwrap params with `await params`
+- Updated client components to use React.use() for params
 - Implemented complete CRUD operations for meal plans (admin-only)
 - Created APIs: GET /api/admin/meal-plans (list with search), POST (create), GET/PUT/DELETE /api/admin/meal-plans/[id]
 - Search functionality filters plans by title or patient name (server-side filtering for security)
