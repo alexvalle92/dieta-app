@@ -57,11 +57,23 @@ CREATE TABLE IF NOT EXISTS recipes (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Create password_reset_tokens table
+CREATE TABLE IF NOT EXISTS password_reset_tokens (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  patient_id UUID NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
+  token VARCHAR(255) UNIQUE NOT NULL,
+  expires_at TIMESTAMPTZ NOT NULL,
+  used BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_admins_email ON admins(email);
 CREATE INDEX IF NOT EXISTS idx_meal_plans_patient_id ON meal_plans(patient_id);
 CREATE INDEX IF NOT EXISTS idx_meal_plans_status ON meal_plans(status);
 CREATE INDEX IF NOT EXISTS idx_recipes_category ON recipes(category);
+CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_token ON password_reset_tokens(token);
+CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_patient_id ON password_reset_tokens(patient_id);
 
 -- Update triggers for updated_at
 DO $$
