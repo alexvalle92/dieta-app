@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabase-server'
+import { db } from '@/server/db'
+import { mealPlans, patients } from '@/shared/schema'
+import { eq, desc } from 'drizzle-orm'
 import { requireAuth } from '@/lib/auth'
 
 export async function GET(request: NextRequest) {
@@ -16,33 +18,33 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const search = searchParams.get('search')?.trim().toLowerCase() || ''
 
-    const supabase = supabaseAdmin
+    const mealPlansList = await db
+      .select({
+        id: mealPlans.id,
+        patientId: mealPlans.patientId,
+        title: mealPlans.title,
+        description: mealPlans.description,
+        startDate: mealPlans.startDate,
+        endDate: mealPlans.endDate,
+        status: mealPlans.status,
+        planData: mealPlans.planData,
+        createdAt: mealPlans.createdAt,
+        updatedAt: mealPlans.updatedAt,
+        patient: {
+          id: patients.id,
+          name: patients.name,
+          email: patients.email,
+          cpf: patients.cpf,
+        },
+      })
+      .from(mealPlans)
+      .leftJoin(patients, eq(mealPlans.patientId, patients.id))
+      .orderBy(desc(mealPlans.createdAt))
 
-    const { data: mealPlans, error } = await supabase
-      .from('meal_plans')
-      .select(`
-        *,
-        patient:patients (
-          id,
-          name,
-          email,
-          cpf
-        )
-      `)
-      .order('created_at', { ascending: false })
-
-    if (error) {
-      console.error('Error fetching meal plans:', error)
-      return NextResponse.json(
-        { error: 'Erro ao buscar planos alimentares' },
-        { status: 500 }
-      )
-    }
-
-    let filteredPlans = mealPlans || []
+    let filteredPlans = mealPlansList
 
     if (search) {
-      filteredPlans = filteredPlans.filter((plan: any) => {
+      filteredPlans = mealPlansList.filter((plan) => {
         const titleMatch = plan.title?.toLowerCase().includes(search)
         const patientNameMatch = plan.patient?.name?.toLowerCase().includes(search)
         return titleMatch || patientNameMatch
@@ -87,52 +89,57 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const supabase = supabaseAdmin
+    const [patient] = await db
+      .select({ id: patients.id })
+      .from(patients)
+      .where(eq(patients.id, patient_id))
+      .limit(1)
 
-    const { data: patient, error: patientError } = await supabase
-      .from('patients')
-      .select('id')
-      .eq('id', patient_id)
-      .single()
-
-    if (patientError || !patient) {
+    if (!patient) {
       return NextResponse.json(
         { error: 'Paciente não encontrado' },
         { status: 404 }
       )
     }
 
-    const { data: mealPlan, error } = await supabase
-      .from('meal_plans')
-      .insert({
-        patient_id,
+    const [mealPlan] = await db
+      .insert(mealPlans)
+      .values({
+        patientId: patient_id,
         title,
         description: description || null,
-        start_date,
-        end_date: end_date || null,
+        startDate: start_date,
+        endDate: end_date || null,
         status: status || 'active',
-        plan_data,
+        planData: plan_data,
       })
-      .select(`
-        *,
-        patient:patients (
-          id,
-          name,
-          email,
-          cpf
-        )
-      `)
-      .single()
+      .returning()
 
-    if (error) {
-      console.error('Error creating meal plan:', error)
-      return NextResponse.json(
-        { error: 'Erro ao criar plano alimentar' },
-        { status: 500 }
-      )
-    }
+    const [mealPlanWithPatient] = await db
+      .select({
+        id: mealPlans.id,
+        patientId: mealPlans.patientId,
+        title: mealPlans.title,
+        description: mealPlans.description,
+        startDate: mealPlans.startDate,
+        endDate: mealPlans.endDate,
+        status: mealPlans.status,
+        planData: mealPlans.planData,
+        createdAt: mealPlans.createdAt,
+        updatedAt: mealPlans.updatedAt,
+        patient: {
+          id: patients.id,
+          name: patients.name,
+          email: patients.email,
+          cpf: patients.cpf,
+        },
+      })
+      .from(mealPlans)
+      .leftJoin(patients, eq(mealPlans.patientId, patients.id))
+      .where(eq(mealPlans.id, mealPlan.id))
+      .limit(1)
 
-    return NextResponse.json({ mealPlan }, { status: 201 })
+    return NextResponse.json({ mealPlan: mealPlanWithPatient }, { status: 201 })
   } catch (error) {
     console.error('Meal plan creation error:', error)
     return NextResponse.json(

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
-import { supabaseAdmin } from '@/lib/supabase-server'
+import { db } from '@/server/db'
+import { admins } from '@/shared/schema'
+import { eq } from 'drizzle-orm'
 import { createSession } from '@/lib/auth'
 
 export async function POST(request: NextRequest) {
@@ -15,15 +17,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const supabase = supabaseAdmin
+    const [admin] = await db
+      .select({
+        id: admins.id,
+        name: admins.name,
+        email: admins.email,
+        password: admins.password,
+      })
+      .from(admins)
+      .where(eq(admins.email, email))
+      .limit(1)
 
-    const { data: admin, error } = await supabase
-      .from('admins')
-      .select('id, name, email, password')
-      .eq('email', email)
-      .single()
-
-    if (error || !admin) {
+    if (!admin) {
       return NextResponse.json(
         { error: 'E-mail ou senha inválidos' },
         { status: 401 }

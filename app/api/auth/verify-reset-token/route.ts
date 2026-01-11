@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabase-server'
+import { db } from '@/server/db'
+import { patients, passwordResetTokens } from '@/shared/schema'
+import { eq, and } from 'drizzle-orm'
 import bcrypt from 'bcryptjs'
 
 export async function POST(request: NextRequest) {
@@ -21,16 +23,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const supabase = supabaseAdmin
+    const [resetToken] = await db
+      .select()
+      .from(passwordResetTokens)
+      .where(and(
+        eq(passwordResetTokens.token, token),
+        eq(passwordResetTokens.used, false)
+      ))
+      .limit(1)
 
-    const { data: resetToken, error: tokenError } = await supabase
-      .from('password_reset_tokens')
-      .select('*')
-      .eq('token', token)
-      .eq('used', false)
-      .single()
-
-    if (tokenError || !resetToken) {
+    if (!resetToken) {
       return NextResponse.json(
         { error: 'Token inválido ou já utilizado' },
         { status: 400 }
@@ -38,7 +40,7 @@ export async function POST(request: NextRequest) {
     }
 
     const now = new Date()
-    const expiresAt = new Date(resetToken.expires_at)
+    const expiresAt = new Date(resetToken.expiresAt)
 
     if (now > expiresAt) {
       return NextResponse.json(
@@ -49,19 +51,15 @@ export async function POST(request: NextRequest) {
 
     const hashedPassword = await bcrypt.hash(newPassword, 10)
 
-    const { error: updateError } = await supabase
-      .from('patients')
-      .update({ password: hashedPassword })
-      .eq('id', resetToken.patient_id)
+    await db
+      .update(patients)
+      .set({ password: hashedPassword })
+      .where(eq(patients.id, resetToken.patientId))
 
-    if (updateError) {
-      throw updateError
-    }
-
-    await supabase
-      .from('password_reset_tokens')
-      .update({ used: true })
-      .eq('id', resetToken.id)
+    await db
+      .update(passwordResetTokens)
+      .set({ used: true })
+      .where(eq(passwordResetTokens.id, resetToken.id))
 
     return NextResponse.json({ 
       success: true, 

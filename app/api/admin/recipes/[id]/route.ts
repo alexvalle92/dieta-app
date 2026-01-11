@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabase-server'
+import { db } from '@/server/db'
+import { recipes } from '@/shared/schema'
+import { eq } from 'drizzle-orm'
 import { requireAuth } from '@/lib/auth'
 
 export async function GET(
@@ -17,15 +19,14 @@ export async function GET(
     }
 
     const { id } = await context.params
-    const supabase = supabaseAdmin
 
-    const { data: recipe, error } = await supabase
-      .from('recipes')
-      .select('*')
-      .eq('id', id)
-      .single()
+    const [recipe] = await db
+      .select()
+      .from(recipes)
+      .where(eq(recipes.id, id))
+      .limit(1)
 
-    if (error || !recipe) {
+    if (!recipe) {
       return NextResponse.json(
         { error: 'Receita não encontrada' },
         { status: 404 }
@@ -74,32 +75,21 @@ export async function PUT(
       )
     }
 
-    const supabase = supabaseAdmin
-
-    const { data: recipe, error } = await supabase
-      .from('recipes')
-      .update({
+    const [recipe] = await db
+      .update(recipes)
+      .set({
         title,
         description: description || null,
         ingredients,
         preparation,
-        prep_time: prep_time || null,
+        prepTime: prep_time || null,
         servings: servings || null,
         calories: calories || null,
         category: category || null,
-        image_url: image_url || null,
+        imageUrl: image_url || null,
       })
-      .eq('id', id)
-      .select()
-      .single()
-
-    if (error) {
-      console.error('Error updating recipe:', error)
-      return NextResponse.json(
-        { error: 'Erro ao atualizar receita' },
-        { status: 500 }
-      )
-    }
+      .where(eq(recipes.id, id))
+      .returning()
 
     if (!recipe) {
       return NextResponse.json(
@@ -133,20 +123,10 @@ export async function DELETE(
     }
 
     const { id } = await context.params
-    const supabase = supabaseAdmin
 
-    const { error } = await supabase
-      .from('recipes')
-      .delete()
-      .eq('id', id)
-
-    if (error) {
-      console.error('Error deleting recipe:', error)
-      return NextResponse.json(
-        { error: 'Erro ao deletar receita' },
-        { status: 500 }
-      )
-    }
+    await db
+      .delete(recipes)
+      .where(eq(recipes.id, id))
 
     return NextResponse.json({ success: true })
   } catch (error) {

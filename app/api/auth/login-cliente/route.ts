@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
-import { supabaseAdmin } from '@/lib/supabase-server'
+import { db } from '@/server/db'
+import { patients } from '@/shared/schema'
+import { eq } from 'drizzle-orm'
 import { createSession } from '@/lib/auth'
 
 export async function POST(request: NextRequest) {
@@ -15,15 +17,19 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const supabase = supabaseAdmin
+    const [patient] = await db
+      .select({
+        id: patients.id,
+        name: patients.name,
+        email: patients.email,
+        cpf: patients.cpf,
+        password: patients.password,
+      })
+      .from(patients)
+      .where(eq(patients.cpf, cpf))
+      .limit(1)
 
-    const { data: patient, error } = await supabase
-      .from('patients')
-      .select('id, name, email, cpf, password')
-      .eq('cpf', cpf)
-      .single()
-
-    if (error || !patient) {
+    if (!patient) {
       return NextResponse.json(
         { error: 'CPF ou senha inválidos' },
         { status: 401 }

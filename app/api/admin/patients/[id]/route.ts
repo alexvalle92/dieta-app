@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
-import { supabaseAdmin } from '@/lib/supabase-server'
+import { db } from '@/server/db'
+import { patients } from '@/shared/schema'
+import { eq } from 'drizzle-orm'
 
 export async function GET(
   request: NextRequest,
@@ -18,13 +20,20 @@ export async function GET(
 
     const { id } = await params
 
-    const { data: patient, error } = await supabaseAdmin
-      .from('patients')
-      .select('id, name, email, cpf, phone, created_at, quiz_responses')
-      .eq('id', id)
-      .single()
+    const [patient] = await db
+      .select({
+        id: patients.id,
+        name: patients.name,
+        email: patients.email,
+        cpf: patients.cpf,
+        phone: patients.phone,
+        createdAt: patients.createdAt,
+      })
+      .from(patients)
+      .where(eq(patients.id, id))
+      .limit(1)
 
-    if (error || !patient) {
+    if (!patient) {
       return NextResponse.json(
         { error: 'Paciente não encontrado' },
         { status: 404 }
@@ -66,22 +75,27 @@ export async function PUT(
       )
     }
 
-    const { data: updatedPatient, error } = await supabaseAdmin
-      .from('patients')
-      .update({
+    const [updatedPatient] = await db
+      .update(patients)
+      .set({
         name,
         email,
-        phone: phone?.replace(/\D/g, '') || null,
+        phone: phone?.replace(/\D/g, '') || '',
       })
-      .eq('id', id)
-      .select('id, name, email, cpf, phone, created_at')
-      .single()
+      .where(eq(patients.id, id))
+      .returning({
+        id: patients.id,
+        name: patients.name,
+        email: patients.email,
+        cpf: patients.cpf,
+        phone: patients.phone,
+        createdAt: patients.createdAt,
+      })
 
-    if (error) {
-      console.error('Error updating patient:', error)
+    if (!updatedPatient) {
       return NextResponse.json(
-        { error: 'Erro ao atualizar paciente' },
-        { status: 500 }
+        { error: 'Paciente não encontrado' },
+        { status: 404 }
       )
     }
 
@@ -114,18 +128,9 @@ export async function DELETE(
 
     const { id } = await params
 
-    const { error } = await supabaseAdmin
-      .from('patients')
-      .delete()
-      .eq('id', id)
-
-    if (error) {
-      console.error('Error deleting patient:', error)
-      return NextResponse.json(
-        { error: 'Erro ao deletar paciente' },
-        { status: 500 }
-      )
-    }
+    await db
+      .delete(patients)
+      .where(eq(patients.id, id))
 
     return NextResponse.json({ success: true })
   } catch (error) {

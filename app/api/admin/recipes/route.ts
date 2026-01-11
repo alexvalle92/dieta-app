@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabase-server'
+import { db } from '@/server/db'
+import { recipes } from '@/shared/schema'
+import { desc } from 'drizzle-orm'
 import { requireAuth } from '@/lib/auth'
 
 export async function GET(request: NextRequest) {
@@ -16,25 +18,15 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const search = searchParams.get('search')?.trim().toLowerCase() || ''
 
-    const supabase = supabaseAdmin
+    const recipesList = await db
+      .select()
+      .from(recipes)
+      .orderBy(desc(recipes.createdAt))
 
-    const { data: recipes, error } = await supabase
-      .from('recipes')
-      .select('*')
-      .order('created_at', { ascending: false })
-
-    if (error) {
-      console.error('Error fetching recipes:', error)
-      return NextResponse.json(
-        { error: 'Erro ao buscar receitas' },
-        { status: 500 }
-      )
-    }
-
-    let filteredRecipes = recipes || []
+    let filteredRecipes = recipesList
 
     if (search) {
-      filteredRecipes = filteredRecipes.filter((recipe: any) => {
+      filteredRecipes = recipesList.filter((recipe) => {
         const titleMatch = recipe.title?.toLowerCase().includes(search)
         const categoryMatch = recipe.category?.toLowerCase().includes(search)
         return titleMatch || categoryMatch
@@ -79,31 +71,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const supabase = supabaseAdmin
-
-    const { data: recipe, error } = await supabase
-      .from('recipes')
-      .insert({
+    const [recipe] = await db
+      .insert(recipes)
+      .values({
         title,
         description: description || null,
         ingredients,
         preparation,
-        prep_time: prep_time || null,
+        prepTime: prep_time || null,
         servings: servings || null,
         calories: calories || null,
         category: category || null,
-        image_url: image_url || null,
+        imageUrl: image_url || null,
       })
-      .select()
-      .single()
-
-    if (error) {
-      console.error('Error creating recipe:', error)
-      return NextResponse.json(
-        { error: 'Erro ao criar receita' },
-        { status: 500 }
-      )
-    }
+      .returning()
 
     return NextResponse.json({ recipe }, { status: 201 })
   } catch (error) {

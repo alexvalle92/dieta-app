@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
-import { supabaseAdmin } from '@/lib/supabase-server'
+import { db } from '@/server/db'
+import { patients } from '@/shared/schema'
+import { eq } from 'drizzle-orm'
 import { requireAuth } from '@/lib/auth'
 
 export async function POST(request: NextRequest) {
@@ -31,15 +33,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const supabase = supabaseAdmin
+    const [patient] = await db
+      .select({ password: patients.password })
+      .from(patients)
+      .where(eq(patients.id, session.userId))
+      .limit(1)
 
-    const { data: patient, error } = await supabase
-      .from('patients')
-      .select('password')
-      .eq('id', session.userId)
-      .single()
-
-    if (error || !patient) {
+    if (!patient) {
       return NextResponse.json(
         { error: 'Paciente não encontrado' },
         { status: 404 }
@@ -64,14 +64,10 @@ export async function POST(request: NextRequest) {
 
     const hashedPassword = await bcrypt.hash(newPassword, 10)
 
-    const { error: updateError } = await supabase
-      .from('patients')
-      .update({ password: hashedPassword })
-      .eq('id', session.userId)
-
-    if (updateError) {
-      throw updateError
-    }
+    await db
+      .update(patients)
+      .set({ password: hashedPassword })
+      .where(eq(patients.id, session.userId))
 
     return NextResponse.json({ success: true, message: 'Senha atualizada com sucesso' })
   } catch (error) {

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabase-server'
+import { db } from '@/server/db'
+import { mealPlans, patients } from '@/shared/schema'
+import { eq } from 'drizzle-orm'
 import { requireAuth } from '@/lib/auth'
 
 export async function GET(
@@ -17,23 +19,32 @@ export async function GET(
     }
 
     const { id } = await params
-    const supabase = supabaseAdmin
 
-    const { data: mealPlan, error } = await supabase
-      .from('meal_plans')
-      .select(`
-        *,
-        patient:patients (
-          id,
-          name,
-          email,
-          cpf
-        )
-      `)
-      .eq('id', id)
-      .single()
+    const [mealPlan] = await db
+      .select({
+        id: mealPlans.id,
+        patientId: mealPlans.patientId,
+        title: mealPlans.title,
+        description: mealPlans.description,
+        startDate: mealPlans.startDate,
+        endDate: mealPlans.endDate,
+        status: mealPlans.status,
+        planData: mealPlans.planData,
+        createdAt: mealPlans.createdAt,
+        updatedAt: mealPlans.updatedAt,
+        patient: {
+          id: patients.id,
+          name: patients.name,
+          email: patients.email,
+          cpf: patients.cpf,
+        },
+      })
+      .from(mealPlans)
+      .leftJoin(patients, eq(mealPlans.patientId, patients.id))
+      .where(eq(mealPlans.id, id))
+      .limit(1)
 
-    if (error || !mealPlan) {
+    if (!mealPlan) {
       return NextResponse.json(
         { error: 'Plano alimentar não encontrado' },
         { status: 404 }
@@ -82,15 +93,13 @@ export async function PUT(
       )
     }
 
-    const supabase = supabaseAdmin
+    const [existingPlan] = await db
+      .select({ id: mealPlans.id })
+      .from(mealPlans)
+      .where(eq(mealPlans.id, id))
+      .limit(1)
 
-    const { data: existingPlan, error: existingError } = await supabase
-      .from('meal_plans')
-      .select('id')
-      .eq('id', id)
-      .single()
-
-    if (existingError || !existingPlan) {
+    if (!existingPlan) {
       return NextResponse.json(
         { error: 'Plano alimentar não encontrado' },
         { status: 404 }
@@ -98,13 +107,13 @@ export async function PUT(
     }
 
     if (patient_id) {
-      const { data: patient, error: patientError } = await supabase
-        .from('patients')
-        .select('id')
-        .eq('id', patient_id)
-        .single()
+      const [patient] = await db
+        .select({ id: patients.id })
+        .from(patients)
+        .where(eq(patients.id, patient_id))
+        .limit(1)
 
-      if (patientError || !patient) {
+      if (!patient) {
         return NextResponse.json(
           { error: 'Paciente não encontrado' },
           { status: 404 }
@@ -112,39 +121,45 @@ export async function PUT(
       }
     }
 
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       title,
-      start_date,
+      startDate: start_date,
     }
 
-    if (patient_id !== undefined) updateData.patient_id = patient_id
+    if (patient_id !== undefined) updateData.patientId = patient_id
     if (description !== undefined) updateData.description = description || null
-    if (end_date !== undefined) updateData.end_date = end_date || null
+    if (end_date !== undefined) updateData.endDate = end_date || null
     if (status !== undefined) updateData.status = status
-    if (plan_data !== undefined) updateData.plan_data = plan_data
+    if (plan_data !== undefined) updateData.planData = plan_data
 
-    const { data: mealPlan, error } = await supabase
-      .from('meal_plans')
-      .update(updateData)
-      .eq('id', id)
-      .select(`
-        *,
-        patient:patients (
-          id,
-          name,
-          email,
-          cpf
-        )
-      `)
-      .single()
+    await db
+      .update(mealPlans)
+      .set(updateData)
+      .where(eq(mealPlans.id, id))
 
-    if (error) {
-      console.error('Error updating meal plan:', error)
-      return NextResponse.json(
-        { error: 'Erro ao atualizar plano alimentar' },
-        { status: 500 }
-      )
-    }
+    const [mealPlan] = await db
+      .select({
+        id: mealPlans.id,
+        patientId: mealPlans.patientId,
+        title: mealPlans.title,
+        description: mealPlans.description,
+        startDate: mealPlans.startDate,
+        endDate: mealPlans.endDate,
+        status: mealPlans.status,
+        planData: mealPlans.planData,
+        createdAt: mealPlans.createdAt,
+        updatedAt: mealPlans.updatedAt,
+        patient: {
+          id: patients.id,
+          name: patients.name,
+          email: patients.email,
+          cpf: patients.cpf,
+        },
+      })
+      .from(mealPlans)
+      .leftJoin(patients, eq(mealPlans.patientId, patients.id))
+      .where(eq(mealPlans.id, id))
+      .limit(1)
 
     return NextResponse.json({ mealPlan })
   } catch (error) {
@@ -171,33 +186,23 @@ export async function DELETE(
     }
 
     const { id } = await params
-    const supabase = supabaseAdmin
 
-    const { data: existingPlan, error: existingError } = await supabase
-      .from('meal_plans')
-      .select('id, title')
-      .eq('id', id)
-      .single()
+    const [existingPlan] = await db
+      .select({ id: mealPlans.id, title: mealPlans.title })
+      .from(mealPlans)
+      .where(eq(mealPlans.id, id))
+      .limit(1)
 
-    if (existingError || !existingPlan) {
+    if (!existingPlan) {
       return NextResponse.json(
         { error: 'Plano alimentar não encontrado' },
         { status: 404 }
       )
     }
 
-    const { error } = await supabase
-      .from('meal_plans')
-      .delete()
-      .eq('id', id)
-
-    if (error) {
-      console.error('Error deleting meal plan:', error)
-      return NextResponse.json(
-        { error: 'Erro ao deletar plano alimentar' },
-        { status: 500 }
-      )
-    }
+    await db
+      .delete(mealPlans)
+      .where(eq(mealPlans.id, id))
 
     return NextResponse.json({ 
       success: true, 

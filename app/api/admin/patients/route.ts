@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
-import { supabaseAdmin } from '@/lib/supabase-server'
+import { db } from '@/server/db'
+import { patients } from '@/shared/schema'
+import { eq, or, ilike, desc } from 'drizzle-orm'
 import bcrypt from 'bcryptjs'
 
 export async function GET(request: NextRequest) {
@@ -17,26 +19,42 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const search = searchParams.get('search') || ''
 
-    let query = supabaseAdmin
-      .from('patients')
-      .select('id, name, email, cpf, phone, created_at')
-      .order('created_at', { ascending: false })
-
+    let patientsList;
+    
     if (search) {
-      query = query.or(`name.ilike.%${search}%,email.ilike.%${search}%,cpf.ilike.%${search}%`)
+      patientsList = await db
+        .select({
+          id: patients.id,
+          name: patients.name,
+          email: patients.email,
+          cpf: patients.cpf,
+          phone: patients.phone,
+          createdAt: patients.createdAt,
+        })
+        .from(patients)
+        .where(
+          or(
+            ilike(patients.name, `%${search}%`),
+            ilike(patients.email, `%${search}%`),
+            ilike(patients.cpf, `%${search}%`)
+          )
+        )
+        .orderBy(desc(patients.createdAt))
+    } else {
+      patientsList = await db
+        .select({
+          id: patients.id,
+          name: patients.name,
+          email: patients.email,
+          cpf: patients.cpf,
+          phone: patients.phone,
+          createdAt: patients.createdAt,
+        })
+        .from(patients)
+        .orderBy(desc(patients.createdAt))
     }
 
-    const { data: patients, error } = await query
-
-    if (error) {
-      console.error('Error fetching patients:', error)
-      return NextResponse.json(
-        { error: 'Erro ao buscar pacientes' },
-        { status: 500 }
-      )
-    }
-
-    return NextResponse.json({ patients })
+    return NextResponse.json({ patients: patientsList })
   } catch (error) {
     console.error('Error in GET /api/admin/patients:', error)
     return NextResponse.json(
@@ -69,13 +87,13 @@ export async function POST(request: NextRequest) {
 
     const cpfNumbers = cpf.replace(/\D/g, '')
 
-    const { data: existingPatient } = await supabaseAdmin
-      .from('patients')
-      .select('id')
-      .or(`cpf.eq.${cpfNumbers},email.eq.${email}`)
-      .single()
+    const existingPatient = await db
+      .select({ id: patients.id })
+      .from(patients)
+      .where(or(eq(patients.cpf, cpfNumbers), eq(patients.email, email)))
+      .limit(1)
 
-    if (existingPatient) {
+    if (existingPatient.length > 0) {
       return NextResponse.json(
         { error: 'CPF ou email já cadastrado' },
         { status: 409 }
@@ -84,25 +102,23 @@ export async function POST(request: NextRequest) {
 
     const hashedPassword = await bcrypt.hash(password, 10)
 
-    const { data: newPatient, error } = await supabaseAdmin
-      .from('patients')
-      .insert({
+    const [newPatient] = await db
+      .insert(patients)
+      .values({
         name,
         email,
         cpf: cpfNumbers,
-        phone: phone?.replace(/\D/g, '') || null,
+        phone: phone?.replace(/\D/g, '') || '',
         password: hashedPassword,
       })
-      .select('id, name, email, cpf, phone, created_at')
-      .single()
-
-    if (error) {
-      console.error('Error creating patient:', error)
-      return NextResponse.json(
-        { error: 'Erro ao criar paciente' },
-        { status: 500 }
-      )
-    }
+      .returning({
+        id: patients.id,
+        name: patients.name,
+        email: patients.email,
+        cpf: patients.cpf,
+        phone: patients.phone,
+        createdAt: patients.createdAt,
+      })
 
     return NextResponse.json(
       { 

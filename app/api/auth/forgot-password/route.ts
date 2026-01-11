@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabase-server'
+import { db } from '@/server/db'
+import { patients, passwordResetTokens } from '@/shared/schema'
+import { eq, and } from 'drizzle-orm'
 import crypto from 'crypto'
 
 export async function POST(request: NextRequest) {
@@ -16,15 +18,17 @@ export async function POST(request: NextRequest) {
 
     const cpfNumbers = cpf.replace(/\D/g, '')
 
-    const supabase = supabaseAdmin
+    const [patient] = await db
+      .select({
+        id: patients.id,
+        name: patients.name,
+        email: patients.email,
+      })
+      .from(patients)
+      .where(eq(patients.cpf, cpfNumbers))
+      .limit(1)
 
-    const { data: patient, error } = await supabase
-      .from('patients')
-      .select('id, name, email')
-      .eq('cpf', cpfNumbers)
-      .single()
-
-    if (error || !patient) {
+    if (!patient) {
       return NextResponse.json(
         { error: 'CPF não encontrado no sistema' },
         { status: 404 }
@@ -36,28 +40,21 @@ export async function POST(request: NextRequest) {
     const expiresAt = new Date()
     expiresAt.setHours(expiresAt.getHours() + 1)
 
-    await supabase
-      .from('password_reset_tokens')
-      .update({ used: true })
-      .eq('patient_id', patient.id)
-      .eq('used', false)
+    await db
+      .update(passwordResetTokens)
+      .set({ used: true })
+      .where(and(
+        eq(passwordResetTokens.patientId, patient.id),
+        eq(passwordResetTokens.used, false)
+      ))
 
-    const { data: resetTokenData, error: tokenError } = await supabase
-      .from('password_reset_tokens')
-      .insert({
-        patient_id: patient.id,
+    await db
+      .insert(passwordResetTokens)
+      .values({
+        patientId: patient.id,
         token,
-        expires_at: expiresAt.toISOString(),
+        expiresAt,
       })
-      .select()
-
-    if (tokenError) {
-      console.error('Error creating reset token:', tokenError)
-      return NextResponse.json(
-        { error: 'Erro ao gerar link de recuperação. Verifique se a tabela password_reset_tokens foi criada no Supabase.' },
-        { status: 500 }
-      )
-    }
 
     const resetLink = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:5000'}/cliente/redefinir-senha/${token}`
 
