@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import bcrypt from 'bcryptjs'
-import { supabaseAdmin } from '@/lib/supabase-server'
+import { db } from '@/server/db'
+import { admins } from '@/shared/schema'
+import { eq } from 'drizzle-orm'
 import { requireAuth } from '@/lib/auth'
+import { hashSHA512, compareSHA512 } from '@/lib/crypto-utils'
 
 export async function POST(request: NextRequest) {
   try {
@@ -31,15 +33,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const supabase = supabaseAdmin
+    const [admin] = await db
+      .select({ password: admins.password })
+      .from(admins)
+      .where(eq(admins.id, session.userId))
+      .limit(1)
 
-    const { data: admin, error } = await supabase
-      .from('admins')
-      .select('password')
-      .eq('id', session.userId)
-      .single()
-
-    if (error || !admin) {
+    if (!admin) {
       return NextResponse.json(
         { error: 'Administrador não encontrado' },
         { status: 404 }
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const passwordMatch = await bcrypt.compare(currentPassword, admin.password)
+    const passwordMatch = compareSHA512(currentPassword, admin.password)
 
     if (!passwordMatch) {
       return NextResponse.json(
@@ -62,16 +62,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const hashedPassword = await bcrypt.hash(newPassword, 10)
+    const hashedPassword = hashSHA512(newPassword)
 
-    const { error: updateError } = await supabase
-      .from('admins')
-      .update({ password: hashedPassword })
-      .eq('id', session.userId)
-
-    if (updateError) {
-      throw updateError
-    }
+    await db
+      .update(admins)
+      .set({ password: hashedPassword })
+      .where(eq(admins.id, session.userId))
 
     return NextResponse.json({ success: true, message: 'Senha atualizada com sucesso' })
   } catch (error) {

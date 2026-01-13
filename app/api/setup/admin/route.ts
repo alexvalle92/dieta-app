@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabase-server'
-import bcrypt from 'bcryptjs'
+import { db } from '@/server/db'
+import { admins } from '@/shared/schema'
+import { hashSHA512 } from '@/lib/crypto-utils'
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,28 +15,21 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10)
+    const hashedPassword = hashSHA512(password)
 
-    const { data, error } = await supabaseAdmin
-      .from('admins')
-      .insert([
-        {
-          name,
-          email,
-          password: hashedPassword,
-          cpf,
-          phone,
-          crn,
-        },
-      ])
-      .select()
+    const [admin] = await db
+      .insert(admins)
+      .values({
+        name,
+        email,
+        password: hashedPassword,
+        cpf,
+        phone,
+        crn,
+      })
+      .returning()
 
-    if (error) {
-      console.error('Error creating admin:', error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
-    }
-
-    return NextResponse.json({ success: true, admin: data[0] })
+    return NextResponse.json({ success: true, admin })
   } catch (error) {
     console.error('Error in admin setup:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

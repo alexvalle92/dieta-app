@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/server/db'
 import { patients, passwordResetTokens } from '@/shared/schema'
 import { eq, and } from 'drizzle-orm'
-import bcrypt from 'bcryptjs'
+import { hashSHA512 } from '@/lib/crypto-utils'
 
 export async function POST(request: NextRequest) {
   try {
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const hashedPassword = await bcrypt.hash(newPassword, 10)
+    const hashedPassword = hashSHA512(newPassword)
 
     await db
       .update(patients)

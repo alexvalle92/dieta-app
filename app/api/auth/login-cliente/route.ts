@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import bcrypt from 'bcryptjs'
 import { db } from '@/server/db'
 import { patients } from '@/shared/schema'
 import { eq } from 'drizzle-orm'
 import { createSession } from '@/lib/auth'
+import { compareSHA512 } from '@/lib/crypto-utils'
 
 export async function POST(request: NextRequest) {
   try {
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const passwordMatch = await bcrypt.compare(password, patient.password)
+    const passwordMatch = compareSHA512(password, patient.password)
 
     if (!passwordMatch) {
       return NextResponse.json(
