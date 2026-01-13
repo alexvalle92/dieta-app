@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10)
+    const hashedPassword = hashSHA512(password)
 
     const [newPatient] = await db
       .insert(patients)

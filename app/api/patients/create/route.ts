@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import bcrypt from 'bcryptjs'
-import { supabaseAdmin } from '@/lib/supabase-server'
+import { db } from '@/server/db'
+import { patients } from '@/shared/schema'
+import { eq, or } from 'drizzle-orm'
 import { requireAuth } from '@/lib/auth'
+import { hashSHA512 } from '@/lib/crypto-utils'
 
 export async function POST(request: NextRequest) {
   try {
@@ -40,53 +42,31 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const supabase = supabaseAdmin
+    const [existingPatient] = await db
+      .select({ id: patients.id })
+      .from(patients)
+      .where(or(eq(patients.cpf, cpfNumbers), eq(patients.email, email)))
+      .limit(1)
 
-    const { data: existingCPF } = await supabase
-      .from('patients')
-      .select('id')
-      .eq('cpf', cpfNumbers)
-      .single()
-
-    if (existingCPF) {
+    if (existingPatient) {
       return NextResponse.json(
-        { error: 'CPF já cadastrado' },
+        { error: 'CPF ou E-mail já cadastrado' },
         { status: 400 }
       )
     }
 
-    const { data: existingEmail } = await supabase
-      .from('patients')
-      .select('id')
-      .eq('email', email)
-      .single()
+    const hashedPassword = hashSHA512(password)
 
-    if (existingEmail) {
-      return NextResponse.json(
-        { error: 'E-mail já cadastrado' },
-        { status: 400 }
-      )
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10)
-
-    const { data: patient, error } = await supabase
-      .from('patients')
-      .insert([
-        {
-          name,
-          cpf: cpfNumbers,
-          email,
-          phone,
-          password: hashedPassword,
-        },
-      ])
-      .select()
-      .single()
-
-    if (error) {
-      throw error
-    }
+    const [patient] = await db
+      .insert(patients)
+      .values({
+        name,
+        cpf: cpfNumbers,
+        email,
+        phone,
+        password: hashedPassword,
+      })
+      .returning()
 
     return NextResponse.json({
       success: true,
