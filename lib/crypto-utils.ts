@@ -1,12 +1,12 @@
 import { createHash } from 'crypto';
 
 /**
- * Gera um hash SHA512 para uma senha.
+ * Gera um hash SHA512 para uma senha codificado em Base64.
  * @param password A senha em texto puro.
- * @returns O hash SHA512 em hexadecimal.
+ * @returns O hash SHA512 em Base64.
  */
 export function hashSHA512(password: string): string {
-  return createHash('sha512').update(password).digest('hex');
+  return createHash('sha512').update(password).digest('base64');
 }
 
 /**

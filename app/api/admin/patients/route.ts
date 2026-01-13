@@ -3,7 +3,7 @@ import { getSession } from '@/lib/auth'
 import { db } from '@/server/db'
 import { patients } from '@/shared/schema'
 import { eq, or, ilike, desc } from 'drizzle-orm'
-import bcrypt from 'bcryptjs'
+import { hashSHA512 } from '@/lib/crypto-utils'
 
 export async function GET(request: NextRequest) {
   try {
