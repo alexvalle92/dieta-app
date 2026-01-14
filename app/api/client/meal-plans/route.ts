@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabase-server'
+import { db } from '@/server/db'
+import { mealPlans } from '@/shared/schema'
 import { requireAuth } from '@/lib/auth'
+import { eq, desc } from 'drizzle-orm'
 
 export async function GET(request: NextRequest) {
   try {
@@ -13,23 +15,13 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const supabase = supabaseAdmin
+    const mealPlansList = await db
+      .select()
+      .from(mealPlans)
+      .where(eq(mealPlans.patientId, session.userId))
+      .orderBy(desc(mealPlans.createdAt))
 
-    const { data: mealPlans, error } = await supabase
-      .from('meal_plans')
-      .select('*')
-      .eq('patient_id', session.userId)
-      .order('created_at', { ascending: false })
-
-    if (error) {
-      console.error('Error fetching meal plans:', error)
-      return NextResponse.json(
-        { error: 'Erro ao buscar planos alimentares' },
-        { status: 500 }
-      )
-    }
-
-    return NextResponse.json({ mealPlans: mealPlans || [] })
+    return NextResponse.json({ mealPlans: mealPlansList })
   } catch (error) {
     console.error('Meal plans fetch error:', error)
     return NextResponse.json(

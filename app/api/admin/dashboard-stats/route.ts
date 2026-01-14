@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/auth'
-import { supabaseAdmin } from '@/lib/supabase-server'
+import { db } from '@/server/db'
+import { patients, mealPlans, recipes } from '@/shared/schema'
+import { eq, gte, lte, and, sql } from 'drizzle-orm'
 
 export async function GET(req: NextRequest) {
   try {
@@ -14,50 +16,41 @@ export async function GET(req: NextRequest) {
     }
 
     const now = new Date()
-    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
-    const firstDayOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString()
-    const lastDayOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59).toISOString()
+    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+    const firstDayOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+    const lastDayOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59)
 
     const [
-      patientsResult,
-      plansResult,
-      recipesResult,
-      newPatientsThisMonthResult,
-      newPatientsLastMonthResult
+      patientsCount,
+      activePlansList,
+      recipesCount,
+      newPatientsThisMonth,
+      newPatientsLastMonth
     ] = await Promise.all([
-      supabaseAdmin
-        .from('patients')
-        .select('id', { count: 'exact', head: true }),
-      supabaseAdmin
-        .from('meal_plans')
-        .select('id, status')
-        .eq('status', 'active'),
-      supabaseAdmin
-        .from('recipes')
-        .select('id', { count: 'exact', head: true }),
-      supabaseAdmin
-        .from('patients')
-        .select('id', { count: 'exact', head: true })
-        .gte('created_at', firstDayOfMonth),
-      supabaseAdmin
-        .from('patients')
-        .select('id', { count: 'exact', head: true })
-        .gte('created_at', firstDayOfLastMonth)
-        .lte('created_at', lastDayOfLastMonth)
+      db.select({ count: sql<number>`count(*)` }).from(patients),
+      db.select({ id: mealPlans.id }).from(mealPlans).where(eq(mealPlans.status, 'active')),
+      db.select({ count: sql<number>`count(*)` }).from(recipes),
+      db.select({ count: sql<number>`count(*)` }).from(patients).where(gte(patients.createdAt, firstDayOfMonth)),
+      db.select({ count: sql<number>`count(*)` }).from(patients).where(
+        and(
+          gte(patients.createdAt, firstDayOfLastMonth),
+          lte(patients.createdAt, lastDayOfLastMonth)
+        )
+      )
     ])
 
-    const totalPatients = patientsResult.count || 0
-    const activePlans = plansResult.data?.length || 0
-    const totalRecipes = recipesResult.count || 0
-    const newPatientsThisMonth = newPatientsThisMonthResult.count || 0
-    const newPatientsLastMonth = newPatientsLastMonthResult.count || 0
+    const totalPatients = Number(patientsCount[0]?.count) || 0
+    const activePlans = activePlansList.length
+    const totalRecipes = Number(recipesCount[0]?.count) || 0
+    const newThisMonth = Number(newPatientsThisMonth[0]?.count) || 0
+    const newLastMonth = Number(newPatientsLastMonth[0]?.count) || 0
 
     let growthPercentage = 0
-    if (newPatientsLastMonth > 0) {
+    if (newLastMonth > 0) {
       growthPercentage = Math.round(
-        ((newPatientsThisMonth - newPatientsLastMonth) / newPatientsLastMonth) * 100
+        ((newThisMonth - newLastMonth) / newLastMonth) * 100
       )
-    } else if (newPatientsThisMonth > 0) {
+    } else if (newThisMonth > 0) {
       growthPercentage = 100
     }
 
@@ -66,7 +59,7 @@ export async function GET(req: NextRequest) {
         totalPacientes: totalPatients,
         planosAtivos: activePlans,
         receitasCadastradas: totalRecipes,
-        novosEsseMes: newPatientsThisMonth,
+        novosEsseMes: newThisMonth,
         crescimento: growthPercentage
       }
     })

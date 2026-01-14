@@ -6,7 +6,9 @@ import { Mail, Phone, Edit, Plus } from "lucide-react"
 import Link from "next/link"
 import { getSession } from "@/lib/auth"
 import { redirect } from "next/navigation"
-import { supabaseAdmin } from "@/lib/supabase-server"
+import { db } from "@/server/db"
+import { patients } from "@/shared/schema"
+import { desc, or, ilike } from "drizzle-orm"
 import { SearchPatients } from "@/components/search-patients"
 import { DeletePatientButton } from "@/components/delete-patient-button"
 import { Toaster } from "sonner"
@@ -26,17 +28,40 @@ export default async function PacientesPage({
   const rawSearch = params.search || ''
   const search = rawSearch.trim().replace(/[%_]/g, '')
 
-  let query = supabaseAdmin
-    .from('patients')
-    .select('id, name, email, cpf, phone, created_at')
-    .order('created_at', { ascending: false })
-
+  let pacientes;
+  
   if (search.length > 0) {
-    const searchPattern = search.replace(/'/g, "''")
-    query = query.or(`name.ilike.%${searchPattern}%,email.ilike.%${searchPattern}%,cpf.ilike.%${searchPattern}%`)
+    pacientes = await db
+      .select({
+        id: patients.id,
+        name: patients.name,
+        email: patients.email,
+        cpf: patients.cpf,
+        phone: patients.phone,
+        createdAt: patients.createdAt,
+      })
+      .from(patients)
+      .where(
+        or(
+          ilike(patients.name, `%${search}%`),
+          ilike(patients.email, `%${search}%`),
+          ilike(patients.cpf, `%${search}%`)
+        )
+      )
+      .orderBy(desc(patients.createdAt))
+  } else {
+    pacientes = await db
+      .select({
+        id: patients.id,
+        name: patients.name,
+        email: patients.email,
+        cpf: patients.cpf,
+        phone: patients.phone,
+        createdAt: patients.createdAt,
+      })
+      .from(patients)
+      .orderBy(desc(patients.createdAt))
   }
-
-  const { data: pacientes } = await query
 
   const formatCPF = (cpf: string) => {
     if (!cpf) return 'Não informado'
@@ -59,10 +84,9 @@ export default async function PacientesPage({
     return phone
   }
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: Date | null) => {
     if (!dateString) return 'Não informado'
-    const date = new Date(dateString)
-    return date.toLocaleDateString('pt-BR')
+    return dateString.toLocaleDateString('pt-BR')
   }
 
   return (
@@ -97,7 +121,7 @@ export default async function PacientesPage({
                         <Badge variant="default">Ativo</Badge>
                       </div>
                       <CardDescription className="mt-2">
-                        CPF: {formatCPF(paciente.cpf)} • Cadastrado em {formatDate(paciente.created_at)}
+                        CPF: {formatCPF(paciente.cpf)} • Cadastrado em {formatDate(paciente.createdAt)}
                       </CardDescription>
                     </div>
                     <div className="flex gap-2">

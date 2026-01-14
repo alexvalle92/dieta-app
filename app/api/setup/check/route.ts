@@ -1,19 +1,15 @@
 import { NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabase-server'
+import { db } from '@/server/db'
+import { admins } from '@/shared/schema'
 
 export async function GET() {
   try {
-    const { data, error } = await supabaseAdmin
-      .from('admins')
-      .select('id')
+    const adminList = await db
+      .select({ id: admins.id })
+      .from(admins)
       .limit(1)
 
-    if (error) {
-      console.error('Error checking admin:', error)
-      return NextResponse.json({ hasAdmin: false, error: error.message }, { status: 500 })
-    }
-
-    return NextResponse.json({ hasAdmin: data && data.length > 0 })
+    return NextResponse.json({ hasAdmin: adminList.length > 0 })
   } catch (error) {
     console.error('Error in setup check:', error)
     return NextResponse.json({ hasAdmin: false, error: 'Internal server error' }, { status: 500 })

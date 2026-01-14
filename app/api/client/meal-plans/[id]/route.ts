@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabase-server'
+import { db } from '@/server/db'
+import { mealPlans } from '@/shared/schema'
 import { requireAuth } from '@/lib/auth'
+import { eq, and } from 'drizzle-orm'
 
 export async function GET(
   request: NextRequest,
@@ -17,16 +19,19 @@ export async function GET(
     }
 
     const { id } = await params
-    const supabase = supabaseAdmin
 
-    const { data: mealPlan, error } = await supabase
-      .from('meal_plans')
-      .select('*')
-      .eq('id', id)
-      .eq('patient_id', session.userId)
-      .single()
+    const [mealPlan] = await db
+      .select()
+      .from(mealPlans)
+      .where(
+        and(
+          eq(mealPlans.id, id),
+          eq(mealPlans.patientId, session.userId)
+        )
+      )
+      .limit(1)
 
-    if (error || !mealPlan) {
+    if (!mealPlan) {
       return NextResponse.json(
         { error: 'Plano alimentar não encontrado' },
         { status: 404 }

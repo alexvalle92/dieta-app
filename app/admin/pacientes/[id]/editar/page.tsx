@@ -5,7 +5,9 @@ import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { getSession } from "@/lib/auth"
 import { redirect } from "next/navigation"
-import { supabaseAdmin } from "@/lib/supabase-server"
+import { db } from "@/server/db"
+import { patients } from "@/shared/schema"
+import { eq } from "drizzle-orm"
 import { PatientForm } from "@/components/patient-form"
 
 export default async function EditarPacientePage({ params }: { params: Promise<{ id: string }> }) {
@@ -17,13 +19,19 @@ export default async function EditarPacientePage({ params }: { params: Promise<{
 
   const { id } = await params
 
-  const { data: patient, error } = await supabaseAdmin
-    .from('patients')
-    .select('id, name, email, cpf, phone')
-    .eq('id', id)
-    .single()
+  const [patient] = await db
+    .select({
+      id: patients.id,
+      name: patients.name,
+      email: patients.email,
+      cpf: patients.cpf,
+      phone: patients.phone,
+    })
+    .from(patients)
+    .where(eq(patients.id, id))
+    .limit(1)
 
-  if (error || !patient) {
+  if (!patient) {
     redirect('/admin/pacientes')
   }
 

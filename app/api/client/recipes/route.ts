@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabase-server'
+import { db } from '@/server/db'
+import { recipes } from '@/shared/schema'
 import { requireAuth } from '@/lib/auth'
+import { desc, ilike, or } from 'drizzle-orm'
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,32 +18,27 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const search = searchParams.get('search')?.trim().toLowerCase() || ''
 
-    const supabase = supabaseAdmin
-
-    const { data: recipes, error } = await supabase
-      .from('recipes')
-      .select('*')
-      .order('created_at', { ascending: false })
-
-    if (error) {
-      console.error('Error fetching recipes:', error)
-      return NextResponse.json(
-        { error: 'Erro ao buscar receitas' },
-        { status: 500 }
-      )
-    }
-
-    let filteredRecipes = recipes || []
-
+    let recipesList;
+    
     if (search) {
-      filteredRecipes = filteredRecipes.filter((recipe: any) => {
-        const titleMatch = recipe.title?.toLowerCase().includes(search)
-        const categoryMatch = recipe.category?.toLowerCase().includes(search)
-        return titleMatch || categoryMatch
-      })
+      recipesList = await db
+        .select()
+        .from(recipes)
+        .where(
+          or(
+            ilike(recipes.title, `%${search}%`),
+            ilike(recipes.category, `%${search}%`)
+          )
+        )
+        .orderBy(desc(recipes.createdAt))
+    } else {
+      recipesList = await db
+        .select()
+        .from(recipes)
+        .orderBy(desc(recipes.createdAt))
     }
 
-    return NextResponse.json({ recipes: filteredRecipes })
+    return NextResponse.json({ recipes: recipesList })
   } catch (error) {
     console.error('Recipes fetch error:', error)
     return NextResponse.json(

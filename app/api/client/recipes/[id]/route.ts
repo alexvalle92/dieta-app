@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabase-server'
+import { db } from '@/server/db'
+import { recipes } from '@/shared/schema'
 import { requireAuth } from '@/lib/auth'
+import { eq } from 'drizzle-orm'
 
 export async function GET(
   request: NextRequest,
@@ -17,15 +19,14 @@ export async function GET(
     }
 
     const { id } = await context.params
-    const supabase = supabaseAdmin
 
-    const { data: recipe, error } = await supabase
-      .from('recipes')
-      .select('*')
-      .eq('id', id)
-      .single()
+    const [recipe] = await db
+      .select()
+      .from(recipes)
+      .where(eq(recipes.id, id))
+      .limit(1)
 
-    if (error || !recipe) {
+    if (!recipe) {
       return NextResponse.json(
         { error: 'Receita não encontrada' },
         { status: 404 }

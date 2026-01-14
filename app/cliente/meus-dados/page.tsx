@@ -2,7 +2,9 @@ import { ClientNav } from "@/components/client-nav"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { getSession } from "@/lib/auth"
 import { redirect } from "next/navigation"
-import { supabaseAdmin } from "@/lib/supabase-server"
+import { db } from "@/server/db"
+import { patients } from "@/shared/schema"
+import { eq } from "drizzle-orm"
 import { Mail, Phone, Calendar, User, Hash } from "lucide-react"
 
 export default async function MeusDadosPage() {
@@ -12,11 +14,11 @@ export default async function MeusDadosPage() {
     redirect('/cliente/login')
   }
 
-  const { data: patient } = await supabaseAdmin
-    .from('patients')
-    .select('*')
-    .eq('id', session.userId)
-    .single()
+  const [patient] = await db
+    .select()
+    .from(patients)
+    .where(eq(patients.id, session.userId))
+    .limit(1)
 
   if (!patient) {
     redirect('/cliente/dashboard')
@@ -43,10 +45,9 @@ export default async function MeusDadosPage() {
     return phone
   }
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: Date | null) => {
     if (!dateString) return 'Não informado'
-    const date = new Date(dateString)
-    return date.toLocaleDateString('pt-BR')
+    return dateString.toLocaleDateString('pt-BR')
   }
 
   return (
@@ -115,23 +116,10 @@ export default async function MeusDadosPage() {
                   <span>Data de Cadastro</span>
                 </div>
                 <p className="text-base font-medium text-foreground">
-                  {formatDate(patient.created_at)}
+                  {formatDate(patient.createdAt)}
                 </p>
               </div>
             </div>
-
-            {patient.quiz_responses && (
-              <div className="mt-6 border-t pt-6">
-                <h3 className="mb-4 text-lg font-semibold text-foreground">
-                  Informações do Questionário
-                </h3>
-                <div className="rounded-lg bg-muted/50 p-4">
-                  <p className="text-sm text-muted-foreground">
-                    Respostas do questionário inicial registradas com sucesso
-                  </p>
-                </div>
-              </div>
-            )}
           </CardContent>
         </Card>
       </main>

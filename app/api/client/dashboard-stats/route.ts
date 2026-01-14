@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/auth'
-import { supabaseAdmin } from '@/lib/supabase-server'
+import { db } from '@/server/db'
+import { mealPlans, recipes } from '@/shared/schema'
+import { eq, desc, sql } from 'drizzle-orm'
 
 export async function GET(req: NextRequest) {
   try {
@@ -15,31 +17,26 @@ export async function GET(req: NextRequest) {
 
     const patientId = session.userId
 
-    const [plansResult, recipesResult] = await Promise.all([
-      supabaseAdmin
-        .from('meal_plans')
-        .select('id, status, created_at')
-        .eq('patient_id', patientId)
-        .order('created_at', { ascending: false }),
-      supabaseAdmin
-        .from('recipes')
-        .select('id', { count: 'exact', head: true })
+    const [allPlans, recipesCount] = await Promise.all([
+      db
+        .select({
+          id: mealPlans.id,
+          status: mealPlans.status,
+          createdAt: mealPlans.createdAt
+        })
+        .from(mealPlans)
+        .where(eq(mealPlans.patientId, patientId))
+        .orderBy(desc(mealPlans.createdAt)),
+      db
+        .select({ count: sql<number>`count(*)` })
+        .from(recipes)
     ])
 
-    if (plansResult.error) {
-      console.error('Error fetching plans:', plansResult.error)
-      return NextResponse.json(
-        { error: 'Erro ao buscar planos' },
-        { status: 500 }
-      )
-    }
-
-    const allPlans = plansResult.data || []
     const activePlans = allPlans.filter(plan => plan.status === 'active')
     const recentPlans = allPlans.slice(0, 3)
 
-    const lastUpdate = allPlans.length > 0 
-      ? new Date(allPlans[0].created_at).toLocaleDateString('pt-BR')
+    const lastUpdate = allPlans.length > 0 && allPlans[0].createdAt
+      ? new Date(allPlans[0].createdAt).toLocaleDateString('pt-BR')
       : 'Nenhum'
 
     return NextResponse.json({
@@ -47,12 +44,12 @@ export async function GET(req: NextRequest) {
         planosAtivos: activePlans.length,
         totalPlanos: allPlans.length,
         ultimaAtualizacao: lastUpdate,
-        receitasDisponiveis: recipesResult.count || 0
+        receitasDisponiveis: Number(recipesCount[0]?.count) || 0
       },
-      recentPlans: recentPlans.map((plan: any) => ({
+      recentPlans: recentPlans.map((plan) => ({
         id: plan.id,
         status: plan.status,
-        created_at: plan.created_at
+        created_at: plan.createdAt
       }))
     })
   } catch (error) {
