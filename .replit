@@ -38,3 +38,8 @@ externalPort = 80
 deploymentTarget = "autoscale"
 run = ["pnpm", "run", "start"]
 build = ["pnpm", "run", "build"]
+
+[userenv]
+
+[userenv.shared]
+SUPABASE_DB_URL = "postgresql://postgres:Su!Tami0706@db.pcqteeblywfqlrbnqrjd.supabase.co:5432/postgres"
