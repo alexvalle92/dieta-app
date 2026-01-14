@@ -10,6 +10,7 @@ import { Loader2, Save } from 'lucide-react'
 import { AdminNav } from '@/components/admin-nav'
 import { Toaster } from 'sonner'
 import { LayoutList, Link as LinkIcon } from 'lucide-react'
+import { Utensils } from 'lucide-react'
 import Link from 'next/link'
 
 export default function GeneralSettings() {
