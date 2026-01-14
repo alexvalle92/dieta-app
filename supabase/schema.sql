@@ -192,3 +192,24 @@ COMMENT ON COLUMN meal_plans.plan_data IS 'Dados completos do plano alimentar em
 COMMENT ON COLUMN meal_plans.status IS 'Status do plano (active, completed, cancelled)';
 COMMENT ON COLUMN recipes.ingredients IS 'Lista de ingredientes da receita';
 
+-- Create app_settings table
+CREATE TABLE IF NOT EXISTS app_settings (
+  id TEXT PRIMARY KEY DEFAULT 'global',
+  diet_technical_definition TEXT NOT NULL DEFAULT '',
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Update trigger for app_settings
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'update_app_settings_updated_at') THEN
+    CREATE TRIGGER update_app_settings_updated_at
+      BEFORE UPDATE ON app_settings
+      FOR EACH ROW
+      EXECUTE FUNCTION update_updated_at_column();
+  END IF;
+END $$;
+
+COMMENT ON TABLE app_settings IS 'Tabela de configurações gerais da aplicação';
+COMMENT ON COLUMN app_settings.diet_technical_definition IS 'Definição técnica para criação de dietas';
+

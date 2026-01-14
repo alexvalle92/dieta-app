@@ -103,6 +103,12 @@ export const paymentsRelations = relations(payments, ({ one }) => ({
   }),
 }));
 
+export const appSettings = pgTable("app_settings", {
+  id: text("id").primaryKey().default("global"),
+  dietTechnicalDefinition: text("diet_technical_definition").notNull().default(""),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+});
+
 export type Patient = typeof patients.$inferSelect;
 export type InsertPatient = typeof patients.$inferInsert;
 export type Admin = typeof admins.$inferSelect;
