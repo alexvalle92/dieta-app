@@ -1,9 +1,6 @@
 import { SSMClient, GetParametersCommand } from '@aws-sdk/client-ssm'
 
 export interface EnvConfig {
-  NEXT_PUBLIC_SUPABASE_URL: string
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: string
-  SUPABASE_SERVICE_ROLE_KEY: string
   JWT_SECRET: string
   ASAAS_API_KEY?: string
   ASAAS_SANDBOX?: string
@@ -22,9 +19,6 @@ export async function loadEnvFromAWS(): Promise<EnvConfig> {
 
   if (!isProduction) {
     const localEnv: EnvConfig = {
-      NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
-      SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
       JWT_SECRET: process.env.JWT_SECRET || '',
       ASAAS_API_KEY: process.env.ASAAS_API_KEY,
       ASAAS_SANDBOX: process.env.ASAAS_SANDBOX,
@@ -37,9 +31,6 @@ export async function loadEnvFromAWS(): Promise<EnvConfig> {
     const client = new SSMClient({ region: awsRegion })
 
     const parameterNames = [
-      `${parameterPrefix}/NEXT_PUBLIC_SUPABASE_URL`,
-      `${parameterPrefix}/NEXT_PUBLIC_SUPABASE_ANON_KEY`,
-      `${parameterPrefix}/SUPABASE_SERVICE_ROLE_KEY`,
       `${parameterPrefix}/JWT_SECRET`,
       `${parameterPrefix}/ASAAS_API_KEY`,
       `${parameterPrefix}/ASAAS_SANDBOX`,
@@ -77,9 +68,6 @@ export async function loadEnvFromAWS(): Promise<EnvConfig> {
 export function getEnvConfig(): EnvConfig {
   if (!cachedEnvConfig) {
     const localEnv: EnvConfig = {
-      NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
-      SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
       JWT_SECRET: process.env.JWT_SECRET || '',
       ASAAS_API_KEY: process.env.ASAAS_API_KEY,
       ASAAS_SANDBOX: process.env.ASAAS_SANDBOX,
