@@ -68,6 +68,12 @@ export default function GeneralSettings() {
               Gerenciar Refeições
             </Button>
           </Link>
+          <Link href="/admin/configuracoes/alimentos">
+            <Button variant="outline" className="gap-2">
+              <Utensils className="h-4 w-4" />
+              Alimentos Permitidos
+            </Button>
+          </Link>
         </div>
         
         <div className="space-y-6">

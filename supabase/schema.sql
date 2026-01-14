@@ -222,3 +222,19 @@ CREATE TABLE IF NOT EXISTS meal_categories (
 
 COMMENT ON TABLE meal_categories IS 'Tabela de tipos de refeições (ex: café da manhã, almoço, jantar)';
 
+-- Create allowed_meal_items table
+CREATE TABLE IF NOT EXISTS allowed_meal_items (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  meal_category_id UUID NOT NULL REFERENCES meal_categories(id) ON DELETE CASCADE,
+  item_type TEXT NOT NULL CHECK (item_type IN ('food', 'recipe')),
+  food_name TEXT,
+  recipe_id UUID REFERENCES recipes(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  CONSTRAINT item_content_check CHECK (
+    (item_type = 'food' AND food_name IS NOT NULL AND recipe_id IS NULL) OR
+    (item_type = 'recipe' AND recipe_id IS NOT NULL AND food_name IS NULL)
+  )
+);
+
+COMMENT ON TABLE allowed_meal_items IS 'Tabela de alimentos ou receitas permitidos por tipo de refeição';
+

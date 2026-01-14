@@ -115,6 +115,30 @@ export const mealCategories = pgTable("meal_categories", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 
+export const allowedMealItems = pgTable("allowed_meal_items", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  mealCategoryId: uuid("meal_category_id").notNull().references(() => mealCategories.id, { onDelete: "cascade" }),
+  itemType: text("item_type").notNull(), // 'food' or 'recipe'
+  foodName: text("food_name"),
+  recipeId: uuid("recipe_id").references(() => recipes.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+export const mealCategoriesRelations = relations(mealCategories, ({ many }) => ({
+  allowedItems: many(allowedMealItems),
+}));
+
+export const allowedMealItemsRelations = relations(allowedMealItems, ({ one }) => ({
+  category: one(mealCategories, {
+    fields: [allowedMealItems.mealCategoryId],
+    references: [mealCategories.id],
+  }),
+  recipe: one(recipes, {
+    fields: [allowedMealItems.recipeId],
+    references: [recipes.id],
+  }),
+}));
+
 export type Patient = typeof patients.$inferSelect;
 export type InsertPatient = typeof patients.$inferInsert;
 export type Admin = typeof admins.$inferSelect;
