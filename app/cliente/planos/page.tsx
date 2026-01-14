@@ -14,15 +14,15 @@ interface MealPlan {
   id: string
   title: string
   description: string | null
-  start_date: string
-  end_date: string | null
+  startDate: string
+  endDate: string | null
   status: 'active' | 'completed' | 'cancelled'
-  plan_data: {
+  planData: {
     calories?: number
     meals?: any[]
     observations?: string
   }
-  created_at: string
+  createdAt: string
 }
 
 export default function ClientPlanosPage() {
@@ -142,18 +142,18 @@ export default function ClientPlanosPage() {
                   <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4" />
-                      <span>Início: {formatDate(plano.start_date)}</span>
+                      <span>Início: {formatDate(plano.startDate)}</span>
                     </div>
-                    {plano.end_date && (
+                    {plano.endDate && (
                       <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4" />
-                        <span>Fim: {formatDate(plano.end_date)}</span>
+                        <span>Fim: {formatDate(plano.endDate)}</span>
                       </div>
                     )}
-                    {plano.plan_data?.calories && (
+                    {plano.planData?.calories && (
                       <div className="flex items-center gap-2">
                         <span className="font-semibold text-primary">
-                          {plano.plan_data.calories} kcal/dia
+                          {plano.planData.calories} kcal/dia
                         </span>
                       </div>
                     )}

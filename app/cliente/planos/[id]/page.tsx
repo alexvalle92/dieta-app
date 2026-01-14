@@ -15,10 +15,10 @@ interface MealPlan {
   id: string
   title: string
   description: string | null
-  start_date: string
-  end_date: string | null
+  startDate: string
+  endDate: string | null
   status: 'active' | 'completed' | 'cancelled'
-  plan_data: {
+  planData: {
     calories?: number
     meals?: Array<{
       name: string
@@ -28,7 +28,7 @@ interface MealPlan {
     }>
     observations?: string
   }
-  created_at: string
+  createdAt: string
 }
 
 export default function PlanoDetalhePage({ params }: { params: Promise<{ id: string }> }) {
@@ -129,8 +129,8 @@ export default function PlanoDetalhePage({ params }: { params: Promise<{ id: str
     )
   }
 
-  const meals = mealPlan.plan_data?.meals || []
-  const observations = mealPlan.plan_data?.observations || ''
+  const meals = mealPlan.planData?.meals || []
+  const observations = mealPlan.planData?.observations || ''
 
   return (
     <div className="min-h-screen bg-background">
@@ -154,18 +154,20 @@ export default function PlanoDetalhePage({ params }: { params: Promise<{ id: str
                   <div className="flex flex-wrap gap-4 text-sm">
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4" />
-                      <span>Início: {formatDate(mealPlan.start_date)}</span>
+                      <span>Início: {formatDate(mealPlan.startDate)}</span>
                     </div>
-                    {mealPlan.end_date && (
+                    {mealPlan.endDate && (
                       <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4" />
-                        <span>Fim: {formatDate(mealPlan.end_date)}</span>
+                        <span>Fim: {formatDate(mealPlan.endDate)}</span>
                       </div>
                     )}
-                    {mealPlan.plan_data?.calories && (
-                      <span className="font-semibold text-primary">
-                        {mealPlan.plan_data.calories} kcal/dia
-                      </span>
+                    {mealPlan.planData?.calories && (
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-primary">
+                          {mealPlan.planData.calories} kcal/dia
+                        </span>
+                      </div>
                     )}
                   </div>
                 </CardDescription>

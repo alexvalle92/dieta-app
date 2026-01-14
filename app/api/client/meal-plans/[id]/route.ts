@@ -21,7 +21,18 @@ export async function GET(
     const { id } = await params
 
     const [mealPlan] = await db
-      .select()
+      .select({
+        id: mealPlans.id,
+        patientId: mealPlans.patientId,
+        title: mealPlans.title,
+        description: mealPlans.description,
+        startDate: mealPlans.startDate,
+        endDate: mealPlans.endDate,
+        status: mealPlans.status,
+        planData: mealPlans.planData,
+        createdAt: mealPlans.createdAt,
+        updatedAt: mealPlans.updatedAt,
+      })
       .from(mealPlans)
       .where(
         and(

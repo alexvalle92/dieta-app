@@ -16,7 +16,18 @@ export async function GET(request: NextRequest) {
     }
 
     const mealPlansList = await db
-      .select()
+      .select({
+        id: mealPlans.id,
+        patientId: mealPlans.patientId,
+        title: mealPlans.title,
+        description: mealPlans.description,
+        startDate: mealPlans.startDate,
+        endDate: mealPlans.endDate,
+        status: mealPlans.status,
+        planData: mealPlans.planData,
+        createdAt: mealPlans.createdAt,
+        updatedAt: mealPlans.updatedAt,
+      })
       .from(mealPlans)
       .where(eq(mealPlans.patientId, session.userId))
       .orderBy(desc(mealPlans.createdAt))
