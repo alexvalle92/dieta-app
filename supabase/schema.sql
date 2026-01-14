@@ -10,61 +10,144 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Add password field to existing patients table
-ALTER TABLE patients
-ADD COLUMN IF NOT EXISTS password TEXT NOT NULL DEFAULT '';
-
--- Create admins table
-CREATE TABLE IF NOT EXISTS admins (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name TEXT NOT NULL,
-  email TEXT UNIQUE NOT NULL,
-  password TEXT NOT NULL,
-  cpf TEXT NOT NULL,
-  phone TEXT NOT NULL,
-  crn TEXT NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
+CREATE TABLE public.admins (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  name text NOT NULL,
+  email text NOT NULL UNIQUE,
+  password text NOT NULL,
+  cpf text NOT NULL,
+  phone text NOT NULL,
+  crn text NOT NULL,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT admins_pkey PRIMARY KEY (id)
 );
-
--- Create meal_plans table
-CREATE TABLE IF NOT EXISTS meal_plans (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  patient_id UUID NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
-  title TEXT NOT NULL,
-  description TEXT,
-  start_date DATE NOT NULL,
-  end_date DATE,
-  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'completed', 'cancelled')),
-  plan_data JSONB NOT NULL DEFAULT '{}',
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
+CREATE TABLE public.chat_messages (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  user_id text,
+  bot_message text,
+  phone text,
+  user_name text,
+  user_message text,
+  conversation_id text,
+  message_type text,
+  active boolean DEFAULT true,
+  app text DEFAULT 'delivery'::text,
+  CONSTRAINT chat_messages_pkey PRIMARY KEY (id)
 );
-
--- Create recipes table
-CREATE TABLE IF NOT EXISTS recipes (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  title TEXT NOT NULL,
-  description TEXT,
-  ingredients TEXT[] NOT NULL DEFAULT '{}',
-  preparation TEXT NOT NULL,
-  prep_time INTEGER,
-  servings INTEGER,
-  calories INTEGER,
-  category TEXT,
-  image_url TEXT,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
+CREATE TABLE public.chats (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  phone text,
+  updated_at timestamp with time zone DEFAULT now(),
+  conversation_id text,
+  app text DEFAULT 'delivery'::text,
+  CONSTRAINT chats_pkey PRIMARY KEY (id)
 );
-
--- Create password_reset_tokens table
-CREATE TABLE IF NOT EXISTS password_reset_tokens (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  patient_id UUID NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
-  token VARCHAR(255) UNIQUE NOT NULL,
-  expires_at TIMESTAMPTZ NOT NULL,
-  used BOOLEAN DEFAULT FALSE,
-  created_at TIMESTAMPTZ DEFAULT NOW()
+CREATE TABLE public.daily_messages (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  mensagem text NOT NULL,
+  dia_semana integer,
+  acesso_app boolean NOT NULL DEFAULT false,
+  CONSTRAINT daily_messages_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.leads (
+  telefone bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  nome character varying,
+  CONSTRAINT leads_pkey PRIMARY KEY (telefone)
+);
+CREATE TABLE public.meal_plans (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  patient_id uuid NOT NULL,
+  title text NOT NULL,
+  description text,
+  start_date date NOT NULL,
+  end_date date,
+  status text NOT NULL DEFAULT 'active'::text CHECK (status = ANY (ARRAY['active'::text, 'completed'::text, 'cancelled'::text])),
+  plan_data jsonb NOT NULL DEFAULT '{}'::jsonb,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT meal_plans_pkey PRIMARY KEY (id),
+  CONSTRAINT meal_plans_patient_id_fkey FOREIGN KEY (patient_id) REFERENCES public.patients(id)
+);
+CREATE TABLE public.password_reset_tokens (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  patient_id uuid NOT NULL,
+  token character varying NOT NULL UNIQUE,
+  expires_at timestamp with time zone NOT NULL,
+  used boolean DEFAULT false,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT password_reset_tokens_pkey PRIMARY KEY (id),
+  CONSTRAINT password_reset_tokens_patient_id_fkey FOREIGN KEY (patient_id) REFERENCES public.patients(id)
+);
+CREATE TABLE public.patients (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  name text NOT NULL,
+  cpf text,
+  email text NOT NULL UNIQUE,
+  phone text NOT NULL,
+  asaas_customer_id text,
+  quiz_responses jsonb,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  password text NOT NULL DEFAULT ''::text,
+  CONSTRAINT patients_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.payments (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  patient_id uuid NOT NULL,
+  asaas_id text,
+  asaas_customer_id text,
+  amount numeric NOT NULL,
+  status text,
+  payment_url text,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  invoice_number bigint,
+  billing_type text,
+  payment_date date,
+  due_date date,
+  event_webhook text,
+  CONSTRAINT payments_pkey PRIMARY KEY (id),
+  CONSTRAINT payments_patient_id_fkey FOREIGN KEY (patient_id) REFERENCES public.patients(id)
+);
+CREATE TABLE public.plano_alimentar (
+  id bigint NOT NULL DEFAULT nextval('plano_alimentar_id_seq'::regclass),
+  content text,
+  metadata jsonb,
+  embedding USER-DEFINED,
+  CONSTRAINT plano_alimentar_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.recipes (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  title text NOT NULL,
+  description text,
+  ingredients ARRAY NOT NULL DEFAULT '{}'::text[],
+  preparation text NOT NULL,
+  prep_time integer,
+  servings integer,
+  calories integer,
+  category text,
+  image_url text,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT recipes_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.tabela_alimentos_ibge (
+  id bigint NOT NULL DEFAULT nextval('tabela_alimentos_ibge_id_seq'::regclass),
+  content text,
+  metadata jsonb,
+  embedding USER-DEFINED,
+  CONSTRAINT tabela_alimentos_ibge_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.tabela_alimentos_taco (
+  id bigint NOT NULL DEFAULT nextval('tabela_alimentos_taco_id_seq'::regclass),
+  content text,
+  metadata jsonb,
+  embedding USER-DEFINED,
+  CONSTRAINT tabela_alimentos_taco_pkey PRIMARY KEY (id)
 );
 
 -- Create indexes for better performance
@@ -108,3 +191,4 @@ COMMENT ON TABLE recipes IS 'Tabela de receitas disponibilizadas pela nutricioni
 COMMENT ON COLUMN meal_plans.plan_data IS 'Dados completos do plano alimentar em formato JSON';
 COMMENT ON COLUMN meal_plans.status IS 'Status do plano (active, completed, cancelled)';
 COMMENT ON COLUMN recipes.ingredients IS 'Lista de ingredientes da receita';
+
