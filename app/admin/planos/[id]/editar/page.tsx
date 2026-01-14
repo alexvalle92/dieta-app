@@ -90,18 +90,19 @@ export default function EditarPlanoPage({ params }: { params: Promise<{ id: stri
         setMealPlan(plan)
         
         setFormData({
-          patient_id: plan.patient_id,
+          patient_id: plan.patientId || plan.patient_id,
           title: plan.title,
-          calories: plan.plan_data?.calories?.toString() || '',
+          calories: plan.planData?.calories?.toString() || plan.plan_data?.calories?.toString() || '',
           description: plan.description || '',
-          start_date: plan.start_date,
-          end_date: plan.end_date || '',
+          start_date: plan.startDate || plan.start_date,
+          end_date: plan.endDate || plan.end_date || '',
           status: plan.status,
-          observations: plan.plan_data?.observations || ''
+          observations: plan.planData?.observations || plan.plan_data?.observations || ''
         })
 
-        if (plan.plan_data?.meals && Array.isArray(plan.plan_data.meals)) {
-          setMeals(plan.plan_data.meals.map((meal: any, index: number) => ({
+        const planData = plan.planData || plan.plan_data;
+        if (planData?.meals && Array.isArray(planData.meals)) {
+          setMeals(planData.meals.map((meal: any, index: number) => ({
             id: index.toString(),
             name: meal.name || '',
             time: meal.time || '',
