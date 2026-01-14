@@ -213,3 +213,12 @@ END $$;
 COMMENT ON TABLE app_settings IS 'Tabela de configurações gerais da aplicação';
 COMMENT ON COLUMN app_settings.diet_technical_definition IS 'Definição técnica para criação de dietas';
 
+-- Create meal_categories table
+CREATE TABLE IF NOT EXISTS meal_categories (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL UNIQUE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+COMMENT ON TABLE meal_categories IS 'Tabela de tipos de refeições (ex: café da manhã, almoço, jantar)';
+

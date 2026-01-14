@@ -9,6 +9,8 @@ import { Loader2, Save } from 'lucide-react'
 
 import { AdminNav } from '@/components/admin-nav'
 import { Toaster } from 'sonner'
+import { LayoutList, Link as LinkIcon } from 'lucide-react'
+import Link from 'next/link'
 
 export default function GeneralSettings() {
   const [definition, setDefinition] = useState('')
@@ -55,9 +57,17 @@ export default function GeneralSettings() {
       <AdminNav />
       <Toaster richColors position="top-center" />
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Configurações Gerais</h1>
-          <p className="mt-2 text-muted-foreground">Gerencie as definições globais da aplicação</p>
+        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Configurações Gerais</h1>
+            <p className="mt-2 text-muted-foreground">Gerencie as definições globais da aplicação</p>
+          </div>
+          <Link href="/admin/configuracoes/refeicoes">
+            <Button variant="outline" className="gap-2">
+              <LayoutList className="h-4 w-4" />
+              Gerenciar Refeições
+            </Button>
+          </Link>
         </div>
         
         <div className="space-y-6">

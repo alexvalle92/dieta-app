@@ -109,6 +109,12 @@ export const appSettings = pgTable("app_settings", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });
 
+export const mealCategories = pgTable("meal_categories", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull().unique(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
 export type Patient = typeof patients.$inferSelect;
 export type InsertPatient = typeof patients.$inferInsert;
 export type Admin = typeof admins.$inferSelect;
