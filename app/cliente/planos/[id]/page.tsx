@@ -162,13 +162,7 @@ export default function PlanoDetalhePage({ params }: { params: Promise<{ id: str
                         <span>Fim: {formatDate(mealPlan.endDate)}</span>
                       </div>
                     )}
-                    {mealPlan.planData?.calories && (
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-primary">
-                          {mealPlan.planData.calories} kcal/dia
-                        </span>
-                      </div>
-                    )}
+                    
                   </div>
                 </CardDescription>
               </div>
@@ -179,14 +173,6 @@ export default function PlanoDetalhePage({ params }: { params: Promise<{ id: str
               </div>
             </div>
           </CardHeader>
-          {mealPlan.description && (
-            <CardContent>
-              <div className="rounded-lg bg-muted/50 p-4">
-                <h3 className="font-semibold text-foreground">Objetivo</h3>
-                <p className="mt-1 text-muted-foreground">{mealPlan.description}</p>
-              </div>
-            </CardContent>
-          )}
         </Card>
 
         {meals.length > 0 && (
@@ -198,9 +184,7 @@ export default function PlanoDetalhePage({ params }: { params: Promise<{ id: str
                   <div className="flex items-center justify-between">
                     <div>
                       <CardTitle className="text-lg">{meal.name}</CardTitle>
-                      {meal.time && <CardDescription>{meal.time}</CardDescription>}
                     </div>
-                    {meal.calories && <Badge variant="outline">{meal.calories}</Badge>}
                   </div>
                 </CardHeader>
                 {meal.foods && (

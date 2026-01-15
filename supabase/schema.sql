@@ -61,8 +61,10 @@ CREATE TABLE public.leads (
 CREATE TABLE public.meal_plans (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   patient_id uuid NOT NULL,
+  payment_id uuid NOT NULL,
   title text NOT NULL,
   description text,
+  first_access_date date,
   start_date date NOT NULL,
   end_date date,
   status text NOT NULL DEFAULT 'active'::text CHECK (status = ANY (ARRAY['active'::text, 'completed'::text, 'cancelled'::text])),

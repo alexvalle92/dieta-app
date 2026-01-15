@@ -121,16 +121,13 @@ export default function ClientPlanosPage() {
             {mealPlans.map((plano) => (
               <Card key={plano.id} className="transition-all hover:shadow-lg">
                 <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
                       <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
                         <FileText className="h-6 w-6 text-primary" />
                       </div>
                       <div>
                         <CardTitle className="text-xl">{plano.title}</CardTitle>
-                        {plano.description && (
-                          <CardDescription className="mt-1">{plano.description}</CardDescription>
-                        )}
                       </div>
                     </div>
                     <Badge variant={getStatusVariant(plano.status)}>
@@ -148,13 +145,6 @@ export default function ClientPlanosPage() {
                       <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4" />
                         <span>Fim: {formatDate(plano.endDate)}</span>
-                      </div>
-                    )}
-                    {plano.planData?.calories && (
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-primary">
-                          {plano.planData.calories} kcal/dia
-                        </span>
                       </div>
                     )}
                   </div>
