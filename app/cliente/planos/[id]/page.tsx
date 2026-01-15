@@ -10,6 +10,7 @@ import { ArrowLeft, Calendar, Download, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
+import { PlanExpirationAlert } from "@/components/plan-expiration-alert"
 
 interface MealPlan {
   id: string
@@ -144,6 +145,12 @@ export default function PlanoDetalhePage({ params }: { params: Promise<{ id: str
             </Button>
           </Link>
         </div>
+
+        <PlanExpirationAlert 
+          endDate={mealPlan.endDate} 
+          planId={mealPlan.id} 
+          variant="detail" 
+        />
 
         <Card className="mb-6">
           <CardHeader>

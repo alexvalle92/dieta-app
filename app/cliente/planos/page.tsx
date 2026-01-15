@@ -9,6 +9,7 @@ import { FileText, Calendar, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
+import { PlanExpirationAlert, PlanExpirationBadge } from "@/components/plan-expiration-alert"
 
 interface MealPlan {
   id: string
@@ -119,7 +120,13 @@ export default function ClientPlanosPage() {
         ) : (
           <div className="grid gap-6">
             {mealPlans.map((plano) => (
-              <Card key={plano.id} className="transition-all hover:shadow-lg">
+              <div key={plano.id}>
+                <PlanExpirationAlert 
+                  endDate={plano.endDate} 
+                  planId={plano.id} 
+                  variant="list" 
+                />
+                <Card className="transition-all hover:shadow-lg">
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
@@ -130,9 +137,12 @@ export default function ClientPlanosPage() {
                         <CardTitle className="text-xl">{plano.title}</CardTitle>
                       </div>
                     </div>
-                    <Badge variant={getStatusVariant(plano.status)}>
-                      {getStatusLabel(plano.status)}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <PlanExpirationBadge endDate={plano.endDate} />
+                      <Badge variant={getStatusVariant(plano.status)}>
+                        {getStatusLabel(plano.status)}
+                      </Badge>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -159,7 +169,8 @@ export default function ClientPlanosPage() {
                     </Link>
                   </div>
                 </CardContent>
-              </Card>
+                </Card>
+              </div>
             ))}
           </div>
         )}
