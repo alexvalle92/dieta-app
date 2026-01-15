@@ -159,8 +159,13 @@ export default function ClientPlanosPage() {
                     )}
                   </div>
                   <div className="mt-4">
-                    <Link href={`/cliente/planos/${plano.id}`}>
-                      <Button className="w-full sm:w-auto">Ver Detalhes do Plano</Button>
+                    <Link href={plano.status === 'active' ? `/cliente/planos/${plano.id}` : '#'}>
+                      <Button 
+                        className="w-full sm:w-auto" 
+                        disabled={plano.status !== 'active'}
+                      >
+                        {plano.status === 'active' ? 'Ver Detalhes do Plano' : 'Plano Inativo'}
+                      </Button>
                     </Link>
                   </div>
                 </CardContent>

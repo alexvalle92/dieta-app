@@ -49,6 +49,13 @@ export async function GET(
       )
     }
 
+    if (mealPlan.status !== 'active') {
+      return NextResponse.json(
+        { error: 'Este plano alimentar não está mais ativo' },
+        { status: 403 }
+      )
+    }
+
     return NextResponse.json({ mealPlan })
   } catch (error) {
     console.error('Meal plan fetch error:', error)
