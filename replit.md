@@ -24,7 +24,7 @@ Preferred communication style: Simple, everyday language.
 
 **Authentication Strategy:** Custom implementation for patients (CPF-based) and administrators (email-based) with JWT-signed sessions and bcrypt hashing. Middleware protects client and admin routes.
 
-**Data Layer:** Supabase client for general operations and Supabase admin client (service role) for privileged actions, ensuring type-safe database interactions.
+**Data Layer:** Drizzle ORM with PostgreSQL (pg driver) for type-safe database interactions. Connected via SUPABASE_DB_URL environment variable.
 
 ### Database Design
 
@@ -52,6 +52,20 @@ Preferred communication style: Simple, everyday language.
 **Data Access:** Utilizes Supabase Row Level Security (RLS) and environment variable separation for keys. Admin service role for privileged operations.
 
 **Initialization Flow:** Setup wizard prevents duplicate admin creation and generates seed data.
+
+### Meal Plan Expiration Notifications
+
+**Component:** `components/plan-expiration-alert.tsx` - Reusable component for expiration alerts.
+
+**Notification Logic (based on end_date):**
+- **D-5 (5 days before):** Info alert with value, mentioning upcoming form availability (detail page only)
+- **D-2 (2 days before):** Warning with form link, quick update available (detail page only)
+- **D-0 (expires today):** Urgent alert to fill form (both listing and detail pages)
+- **D>0 (expired):** Expired alert with payment/renewal link (listing page only)
+
+**Display Locations:**
+- Listing page (`/cliente/planos`): D-0, D>0 alerts + expiration badges
+- Detail page (`/cliente/planos/[id]`): D-5, D-2, D-0 alerts
 
 ## External Dependencies
 
