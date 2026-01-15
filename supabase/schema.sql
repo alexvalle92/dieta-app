@@ -91,7 +91,6 @@ CREATE TABLE public.patients (
   email text NOT NULL UNIQUE,
   phone text NOT NULL,
   asaas_customer_id text,
-  quiz_responses jsonb,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
   password text NOT NULL DEFAULT ''::text,
@@ -239,4 +238,15 @@ CREATE TABLE IF NOT EXISTS allowed_meal_items (
 );
 
 COMMENT ON TABLE allowed_meal_items IS 'Tabela de alimentos ou receitas permitidos por tipo de refeição';
+
+create table public.quiz_responses (
+  id uuid not null default gen_random_uuid (),
+  created_at timestamp with time zone not null default now(),
+  updated_at timestamp without time zone not null default now(),
+  patient_id uuid null,
+  quiz_response jsonb null,
+  first_quiz boolean null,
+  constraint quiz_responses_pkey primary key (id),
+  constraint quiz_responses_patient_id_fkey foreign KEY (patient_id) references patients (id)
+) TABLESPACE pg_default;
 
