@@ -49,7 +49,9 @@ export async function GET(
       )
     }
 
-    if (mealPlan.status !== 'active') {
+    // Ensure status comparison is robust
+    const currentStatus = (mealPlan.status || '').toString().trim().toLowerCase()
+    if (currentStatus !== 'active') {
       return NextResponse.json(
         { error: 'Este plano alimentar não está mais ativo' },
         { status: 403 }
