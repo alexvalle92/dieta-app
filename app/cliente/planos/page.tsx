@@ -80,6 +80,7 @@ export default function ClientPlanosPage() {
 
   const formatDate = (dateString: string) => {
     try {
+      // Usar T00:00:00 para garantir que a data seja interpretada como local e não UTC
       const date = new Date(dateString + 'T00:00:00')
       return format(date, "dd/MM/yyyy", { locale: ptBR })
     } catch (error) {
@@ -144,12 +145,12 @@ export default function ClientPlanosPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <PlanExpirationBadge plans={[{ 
-                        id: plano.id, 
-                        endDate: plano.endDate, 
-                        dueDateNewMealPlan: plano.dueDateNewMealPlan, 
-                        status: plano.status 
-                      }]} />
+                      <PlanExpirationBadge plans={mealPlans.map(p => ({ 
+                        id: p.id, 
+                        endDate: p.endDate, 
+                        dueDateNewMealPlan: p.dueDateNewMealPlan, 
+                        status: p.status 
+                      }))} />
                       <Badge variant={getStatusVariant(plano.status)}>
                         {getStatusLabel(plano.status)}
                       </Badge>
