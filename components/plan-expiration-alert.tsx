@@ -47,8 +47,9 @@ function getMostRecentPlan(plans: MealPlanForAlert[]): MealPlanForAlert | null {
   })
 }
 
-function hasNonExpiredPlan(plans: MealPlanForAlert[]): boolean {
-  return plans.some(plan => !isExpired(plan.endDate))
+// Verifica se existe algum plano que NÃO SEJA o mais recente e que não esteja expirado
+function hasOtherNonExpiredPlan(plans: MealPlanForAlert[], mostRecentId: string): boolean {
+  return plans.some(plan => plan.id !== mostRecentId && !isExpired(plan.endDate))
 }
 
 type ExpirationStatus = 'ok' | 'd5' | 'd2' | 'd0' | 'expired'
@@ -67,10 +68,11 @@ function getExpirationStatus(daysRemaining: number | null): ExpirationStatus {
 export function PlanExpirationAlert({ plans, variant, planPrice = 97 }: PlanExpirationAlertProps) {
   if (plans.length === 0) return null
   
-  if (hasNonExpiredPlan(plans)) return null
-  
   const plan = getMostRecentPlan(plans)
   if (!plan) return null
+
+  // Se existir OUTRO plano ativo que não seja o que está prestes a vencer, não mostramos alerta
+  if (hasOtherNonExpiredPlan(plans, plan.id)) return null
   
   const daysRemaining = calculateDaysRemaining(plan.endDate)
   const status = getExpirationStatus(daysRemaining)
@@ -83,6 +85,7 @@ export function PlanExpirationAlert({ plans, variant, planPrice = 97 }: PlanExpi
   const isDueDateValid = dueDateDaysRemaining !== null && dueDateDaysRemaining >= 0
   
   if (variant === 'list') {
+    // Na listagem, apenas D-0 e Expired são mostrados conforme as regras anteriores
     if (status === 'd0') {
       if (hasDueDate && isDueDateValid) {
         return (
@@ -316,10 +319,11 @@ export function PlanExpirationAlert({ plans, variant, planPrice = 97 }: PlanExpi
 export function PlanExpirationBadge({ plans }: { plans: MealPlanForAlert[] }) {
   if (plans.length === 0) return null
   
-  if (hasNonExpiredPlan(plans)) return null
-  
   const plan = getMostRecentPlan(plans)
   if (!plan) return null
+  
+  // No badge se houver outro plano ativo
+  if (hasOtherNonExpiredPlan(plans, plan.id)) return null
   
   const daysRemaining = calculateDaysRemaining(plan.endDate)
   const status = getExpirationStatus(daysRemaining)
