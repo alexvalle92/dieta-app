@@ -23,6 +23,7 @@ export async function GET(request: NextRequest) {
         description: mealPlans.description,
         startDate: mealPlans.startDate,
         endDate: mealPlans.endDate,
+        dueDateNewMealPlan: mealPlans.dueDateNewMealPlan,
         status: mealPlans.status,
         planData: mealPlans.planData,
         createdAt: mealPlans.createdAt,

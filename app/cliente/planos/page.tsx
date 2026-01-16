@@ -17,6 +17,7 @@ interface MealPlan {
   description: string | null
   startDate: string
   endDate: string | null
+  dueDateNewMealPlan: string | null
   status: 'active' | 'completed' | 'cancelled'
   planData: {
     calories?: number
@@ -119,13 +120,17 @@ export default function ClientPlanosPage() {
           </Card>
         ) : (
           <div className="grid gap-6">
+            <PlanExpirationAlert 
+              plans={mealPlans.map(p => ({ 
+                id: p.id, 
+                endDate: p.endDate, 
+                dueDateNewMealPlan: p.dueDateNewMealPlan, 
+                status: p.status 
+              }))} 
+              variant="list" 
+            />
             {mealPlans.map((plano) => (
               <div key={plano.id}>
-                <PlanExpirationAlert 
-                  endDate={plano.endDate} 
-                  planId={plano.id} 
-                  variant="list" 
-                />
                 <Card className="transition-all hover:shadow-lg">
                 <CardHeader>
                   <div className="flex items-center justify-between">
@@ -138,7 +143,12 @@ export default function ClientPlanosPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <PlanExpirationBadge endDate={plano.endDate} />
+                      <PlanExpirationBadge plans={mealPlans.map(p => ({ 
+                        id: p.id, 
+                        endDate: p.endDate, 
+                        dueDateNewMealPlan: p.dueDateNewMealPlan, 
+                        status: p.status 
+                      }))} />
                       <Badge variant={getStatusVariant(plano.status)}>
                         {getStatusLabel(plano.status)}
                       </Badge>

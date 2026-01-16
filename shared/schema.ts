@@ -35,6 +35,7 @@ export const mealPlans = pgTable("meal_plans", {
   description: text("description"),
   startDate: date("start_date").notNull(),
   endDate: date("end_date"),
+  dueDateNewMealPlan: date("due_date_new_meal_plan"),
   status: text("status").notNull().default("active"),
   planData: jsonb("plan_data").notNull().default({}),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),

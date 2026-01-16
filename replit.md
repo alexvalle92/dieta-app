@@ -57,14 +57,25 @@ Preferred communication style: Simple, everyday language.
 
 **Component:** `components/plan-expiration-alert.tsx` - Reusable component for expiration alerts.
 
+**Core Logic:**
+- Always uses the most recent plan (by end_date) for comparisons
+- No notifications if there are no plans
+- No notifications if at least one plan is NOT expired
+- Uses `due_date_new_meal_plan` to track form submission status
+
 **Notification Logic (based on end_date):**
 - **D-5 (5 days before):** Info alert with value, mentioning upcoming form availability (detail page only)
 - **D-2 (2 days before):** Warning with form link, quick update available (detail page only)
 - **D-0 (expires today):** Urgent alert to fill form (both listing and detail pages)
 - **D>0 (expired):** Expired alert with payment/renewal link (listing page only)
 
+**due_date_new_meal_plan Logic:**
+- If NULL: User hasn't filled the form yet → show "Preencher Formulário" button
+- If NOT NULL and today <= due_date: Form filled, within payment deadline → show "Efetuar Pagamento" + "Atualizar Dados" buttons
+- If NOT NULL and today > due_date: Form filled but payment deadline expired → show "Preencher Formulário Novamente" button
+
 **Display Locations:**
-- Listing page (`/cliente/planos`): D-0, D>0 alerts + expiration badges
+- Listing page (`/cliente/planos`): D-0, D>0 alerts + expiration badges (single alert for all plans)
 - Detail page (`/cliente/planos/[id]`): D-5, D-2, D-0 alerts
 
 ## External Dependencies

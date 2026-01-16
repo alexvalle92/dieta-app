@@ -18,6 +18,7 @@ interface MealPlan {
   description: string | null
   startDate: string
   endDate: string | null
+  dueDateNewMealPlan: string | null
   status: 'active' | 'completed' | 'cancelled'
   planData: {
     calories?: number
@@ -147,8 +148,12 @@ export default function PlanoDetalhePage({ params }: { params: Promise<{ id: str
         </div>
 
         <PlanExpirationAlert 
-          endDate={mealPlan.endDate} 
-          planId={mealPlan.id} 
+          plans={[{ 
+            id: mealPlan.id, 
+            endDate: mealPlan.endDate, 
+            dueDateNewMealPlan: mealPlan.dueDateNewMealPlan, 
+            status: mealPlan.status 
+          }]} 
           variant="detail" 
         />
 
