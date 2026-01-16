@@ -344,8 +344,9 @@ export function PlanExpirationBadge({ plans }: { plans: MealPlanForAlert[] }) {
   const plan = getMostRecentPlan(plans)
   if (!plan) return null
   
-  // No badge se houver outro plano ativo
-  if (hasOtherNonExpiredPlan(plans, plan.id)) return null
+  // Se houver apenas um plano sendo passado (caso da listagem individual), mostramos o badge dele
+  // Caso contrário, mantemos a lógica de mostrar apenas para o mais recente se não houver outro ativo
+  if (plans.length > 1 && hasOtherNonExpiredPlan(plans, plan.id)) return null
   
   const daysRemaining = calculateDaysRemaining(plan.endDate)
   const status = getExpirationStatus(daysRemaining)
