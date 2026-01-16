@@ -45,7 +45,7 @@ export default function PlanoDetalhePage({ params }: { params: Promise<{ id: str
 
   const fetchMealPlan = async () => {
     try {
-      const response = await fetch(`/api/client/meal-plans/${id}`)
+      const response = await fetch(\`/api/client/meal-plans/\${id}\`)
       const data = await response.json()
 
       if (response.ok) {
@@ -90,7 +90,6 @@ export default function PlanoDetalhePage({ params }: { params: Promise<{ id: str
 
   const formatDate = (dateString: string) => {
     try {
-      // Usar T00:00:00 para garantir que a data seja interpretada como local e não UTC
       const date = new Date(dateString + 'T00:00:00')
       return format(date, "dd/MM/yyyy", { locale: ptBR })
     } catch (error) {
@@ -176,7 +175,6 @@ export default function PlanoDetalhePage({ params }: { params: Promise<{ id: str
                         <span>Fim: {formatDate(mealPlan.endDate)}</span>
                       </div>
                     )}
-                    
                   </div>
                 </CardDescription>
               </div>
@@ -238,7 +236,7 @@ export default function PlanoDetalhePage({ params }: { params: Promise<{ id: str
 
         <div className="mt-6 flex gap-4 no-print">
           <Button 
-            className="flex-1 gap-2 bg-transparent" 
+            className="flex-1 gap-2" 
             variant="outline"
             onClick={handleDownloadPDF}
           >
@@ -248,7 +246,7 @@ export default function PlanoDetalhePage({ params }: { params: Promise<{ id: str
         </div>
       </main>
 
-      <style jsx global>{`
+      <style jsx global>{\`
         @media print {
           .no-print {
             display: none !important;
@@ -263,7 +261,7 @@ export default function PlanoDetalhePage({ params }: { params: Promise<{ id: str
             margin: 1cm;
           }
         }
-      `}</style>
+      \`}</style>
     </div>
   )
 }
