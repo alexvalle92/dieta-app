@@ -87,8 +87,8 @@ export function PlanExpirationAlert({ plans, variant, planPrice = 97 }: PlanExpi
   const isDueDateExpired = dueDateDaysRemaining !== null && dueDateDaysRemaining < 0
   const isDueDateValid = dueDateDaysRemaining !== null && dueDateDaysRemaining >= 0
   
+  // Na listagem, apenas D-0 e Expired são mostrados
   if (variant === 'list') {
-    // Na listagem, apenas D-0 e Expired são mostrados conforme as regras anteriores
     if (status === 'd0') {
       if (hasDueDate && isDueDateValid) {
         return (
@@ -313,6 +313,25 @@ export function PlanExpirationAlert({ plans, variant, planPrice = 97 }: PlanExpi
           </AlertDescription>
         </Alert>
       )
+    }
+
+    // No detalhe também mostramos o alerta de expirado caso o usuário acesse um plano antigo
+    if (status === 'expired') {
+        return (
+          <Alert variant="destructive" className="mb-6">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle className="font-semibold">Plano Expirado</AlertTitle>
+            <AlertDescription className="mt-2">
+              <p>Seu plano alimentar expirou. Para liberar um novo plano atualizado, é só atualizar seus dados e concluir o pagamento.</p>
+              <Link href={`/cliente/planos/${plan.id}/renovar`}>
+                <Button size="sm" className="mt-3 gap-2">
+                  <FileText className="h-4 w-4" />
+                  Preencher Formulário
+                </Button>
+              </Link>
+            </AlertDescription>
+          </Alert>
+        )
     }
   }
   
