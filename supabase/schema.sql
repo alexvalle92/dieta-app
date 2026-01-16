@@ -58,22 +58,48 @@ CREATE TABLE public.leads (
   nome character varying,
   CONSTRAINT leads_pkey PRIMARY KEY (telefone)
 );
-CREATE TABLE public.meal_plans (
-  id uuid NOT NULL DEFAULT gen_random_uuid(),
-  patient_id uuid NOT NULL,
-  payment_id uuid NOT NULL,
-  title text NOT NULL,
-  description text,
-  first_access_date date,
-  start_date date NOT NULL,
-  end_date date,
-  status text NOT NULL DEFAULT 'active'::text CHECK (status = ANY (ARRAY['active'::text, 'completed'::text, 'cancelled'::text])),
-  plan_data jsonb NOT NULL DEFAULT '{}'::jsonb,
-  created_at timestamp with time zone DEFAULT now(),
-  updated_at timestamp with time zone DEFAULT now(),
-  CONSTRAINT meal_plans_pkey PRIMARY KEY (id),
-  CONSTRAINT meal_plans_patient_id_fkey FOREIGN KEY (patient_id) REFERENCES public.patients(id)
-);
+
+create table public.meal_plans (
+  id uuid not null default gen_random_uuid (),
+  patient_id uuid not null,
+  title text not null,
+  description text null,
+  start_date date not null,
+  end_date date null,
+  status text not null default 'active'::text,
+  plan_data jsonb not null default '{}'::jsonb,
+  created_at timestamp with time zone null default now(),
+  updated_at timestamp with time zone null default now(),
+  payment_id uuid null,
+  first_access_date date null,
+  payment_url_new_meal_plan text null,
+  quiz_response_id_new_meal_plan uuid null,
+  due_date_new_meal_plan date null,
+  constraint meal_plans_pkey primary key (id),
+  constraint meal_plans_patient_id_fkey foreign KEY (patient_id) references patients (id) on delete CASCADE,
+  constraint meal_plans_payment_id_fkey foreign KEY (payment_id) references payments (id),
+  constraint meal_plans_quiz_response_id_new_meal_plan_fkey foreign KEY (quiz_response_id_new_meal_plan) references quiz_responses (id),
+  constraint meal_plans_status_check check (
+    (
+      status = any (
+        array[
+          'active'::text,
+          'completed'::text,
+          'cancelled'::text
+        ]
+      )
+    )
+  )
+) TABLESPACE pg_default;
+
+create index IF not exists idx_meal_plans_patient_id on public.meal_plans using btree (patient_id) TABLESPACE pg_default;
+
+create index IF not exists idx_meal_plans_status on public.meal_plans using btree (status) TABLESPACE pg_default;
+
+create trigger update_meal_plans_updated_at BEFORE
+update on meal_plans for EACH row
+execute FUNCTION update_updated_at_column ();
+
 CREATE TABLE public.password_reset_tokens (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   patient_id uuid NOT NULL,
