@@ -90,7 +90,9 @@ export default function PlanoDetalhePage({ params }: { params: Promise<{ id: str
 
   const formatDate = (dateString: string) => {
     try {
-      return format(new Date(dateString), "dd/MM/yyyy", { locale: ptBR })
+      // Usar T00:00:00 para garantir que a data seja interpretada como local e não UTC
+      const date = new Date(dateString + 'T00:00:00')
+      return format(date, "dd/MM/yyyy", { locale: ptBR })
     } catch (error) {
       return dateString
     }

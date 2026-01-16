@@ -43,7 +43,10 @@ function getMostRecentPlan(plans: MealPlanForAlert[]): MealPlanForAlert | null {
   return plans.reduce((mostRecent, plan) => {
     if (!mostRecent.endDate) return plan
     if (!plan.endDate) return mostRecent
-    return new Date(plan.endDate) > new Date(mostRecent.endDate) ? plan : mostRecent
+    // Comparar datas garantindo que sejam tratadas sem fuso horário UTC
+    const datePlan = new Date(plan.endDate + 'T00:00:00')
+    const dateMostRecent = new Date(mostRecent.endDate + 'T00:00:00')
+    return datePlan > dateMostRecent ? plan : mostRecent
   })
 }
 
