@@ -145,12 +145,7 @@ export default function ClientPlanosPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <PlanExpirationBadge plans={mealPlans.map(p => ({ 
-                        id: p.id, 
-                        endDate: p.endDate, 
-                        dueDateNewMealPlan: p.dueDateNewMealPlan, 
-                        status: p.status 
-                      }))} />
+                      
                       <Badge variant={getStatusVariant(plano.status)}>
                         {getStatusLabel(plano.status)}
                       </Badge>
