@@ -19,6 +19,7 @@ interface MealPlan {
   startDate: string
   endDate: string | null
   dueDateNewMealPlan: string | null
+  paymentUrlNewMealPlan: string | null
   status: 'active' | 'completed' | 'cancelled'
   planData: {
     calories?: number
@@ -153,7 +154,8 @@ export default function PlanoDetalhePage({ params }: { params: Promise<{ id: str
           plans={[{ 
             id: mealPlan.id, 
             endDate: mealPlan.endDate, 
-            dueDateNewMealPlan: mealPlan.dueDateNewMealPlan, 
+            dueDateNewMealPlan: mealPlan.dueDateNewMealPlan,
+            paymentUrlNewMealPlan: mealPlan.paymentUrlNewMealPlan,
             status: mealPlan.status 
           }]} 
           variant="detail" 
