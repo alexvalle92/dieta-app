@@ -29,6 +29,7 @@ export async function GET(
         startDate: mealPlans.startDate,
         endDate: mealPlans.endDate,
         dueDateNewMealPlan: mealPlans.dueDateNewMealPlan,
+        paymentUrlNewMealPlan: mealPlans.paymentUrlNewMealPlan,
         status: mealPlans.status,
         planData: mealPlans.planData,
         createdAt: mealPlans.createdAt,

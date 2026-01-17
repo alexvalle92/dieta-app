@@ -9,6 +9,7 @@ interface MealPlanForAlert {
   id: string
   endDate: string | null
   dueDateNewMealPlan: string | null
+  paymentUrlNewMealPlan: string | null
   status: string
 }
 
@@ -98,7 +99,7 @@ export function PlanExpirationAlert({ plans, variant, planPrice = 97 }: PlanExpi
             <AlertDescription className="mt-2">
               <p>Você já preencheu o formulário. Efetue o pagamento para liberar seu novo plano ou atualize seus dados se necessário.</p>
               <div className="mt-3 flex flex-wrap gap-2">
-                <Link href={`/cliente/planos/${plan.id}/pagamento`}>
+                <Link href={plan.paymentUrlNewMealPlan || `/cliente/planos/${plan.id}/pagamento`} target={plan.paymentUrlNewMealPlan ? "_blank" : "_self"}>
                   <Button size="sm" className="gap-2 bg-green-600 hover:bg-green-700">
                     <CreditCard className="h-4 w-4" />
                     Efetuar Pagamento
@@ -142,7 +143,7 @@ export function PlanExpirationAlert({ plans, variant, planPrice = 97 }: PlanExpi
             <AlertDescription className="mt-2">
               <p>Você já preencheu o formulário. Efetue o pagamento para liberar seu novo plano ou atualize seus dados se necessário.</p>
               <div className="mt-3 flex flex-wrap gap-2">
-                <Link href={`/cliente/planos/${plan.id}/pagamento`}>
+                <Link href={plan.paymentUrlNewMealPlan || `/cliente/planos/${plan.id}/pagamento`} target={plan.paymentUrlNewMealPlan ? "_blank" : "_self"}>
                   <Button size="sm" className="gap-2 bg-green-600 hover:bg-green-700">
                     <CreditCard className="h-4 w-4" />
                     Efetuar Pagamento
@@ -280,7 +281,7 @@ export function PlanExpirationAlert({ plans, variant, planPrice = 97 }: PlanExpi
             <AlertDescription className="mt-2">
               <p>Você já preencheu o formulário. Efetue o pagamento para liberar seu novo plano ou atualize seus dados se necessário.</p>
               <div className="mt-3 flex flex-wrap gap-2">
-                <Link href={`/cliente/planos/${plan.id}/pagamento`}>
+                <Link href={plan.paymentUrlNewMealPlan || `/cliente/planos/${plan.id}/pagamento`} target={plan.paymentUrlNewMealPlan ? "_blank" : "_self"}>
                   <Button size="sm" className="gap-2 bg-green-600 hover:bg-green-700">
                     <CreditCard className="h-4 w-4" />
                     Efetuar Pagamento
