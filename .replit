@@ -42,4 +42,4 @@ build = ["pnpm", "run", "build"]
 [userenv]
 
 [userenv.shared]
-SUPABASE_DB_URL = "postgresql://postgres:Su!Tami0706@db.pcqteeblywfqlrbnqrjd.supabase.co:5432/postgres"
+SUPABASE_DB_URL = "postgresql://postgres.pcqteeblywfqlrbnqrjd:Su!Tami0706@aws-0-sa-east-1.pooler.supabase.com:6543/postgres"
