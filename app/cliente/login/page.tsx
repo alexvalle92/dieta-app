@@ -33,7 +33,8 @@ export default function ClientLoginPage() {
 
   const handleIdentifierChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
-    if (isEmail(value)) {
+    const hasLetters = /[a-zA-Z@]/.test(value)
+    if (hasLetters) {
       setIdentifier(value)
     } else {
       const formatted = formatCPF(value)
