@@ -43,3 +43,4 @@ build = ["pnpm", "run", "build"]
 
 [userenv.shared]
 SUPABASE_DB_URL = "postgresql://postgres.pcqteeblywfqlrbnqrjd:Su!Tami0706@aws-0-sa-east-1.pooler.supabase.com:6543/postgres"
+JWT_SECRET = "fllymoTXSBubeScKu50TYMdf7Q+ej1Sk6hT2q0zoCX8="
