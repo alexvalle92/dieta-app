@@ -1,21 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/server/db'
 import { patients } from '@/shared/schema'
-import { eq } from 'drizzle-orm'
+import { eq, or } from 'drizzle-orm'
 import { createSession } from '@/lib/auth'
 import { compareSHA512 } from '@/lib/crypto-utils'
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { cpf, password } = body
+    const { cpf, email, password } = body
 
-    if (!cpf || !password) {
+    if ((!cpf && !email) || !password) {
       return NextResponse.json(
-        { error: 'CPF e senha são obrigatórios' },
+        { error: 'CPF ou e-mail e senha são obrigatórios' },
         { status: 400 }
       )
     }
+
+    const whereCondition = cpf 
+      ? eq(patients.cpf, cpf)
+      : eq(patients.email, email)
 
     const [patient] = await db
       .select({
@@ -26,12 +30,12 @@ export async function POST(request: NextRequest) {
         password: patients.password,
       })
       .from(patients)
-      .where(eq(patients.cpf, cpf))
+      .where(whereCondition)
       .limit(1)
 
     if (!patient) {
       return NextResponse.json(
-        { error: 'CPF ou senha inválidos' },
+        { error: 'CPF/E-mail ou senha inválidos' },
         { status: 401 }
       )
     }
@@ -47,7 +51,7 @@ export async function POST(request: NextRequest) {
 
     if (!passwordMatch) {
       return NextResponse.json(
-        { error: 'CPF ou senha inválidos' },
+        { error: 'CPF/E-mail ou senha inválidos' },
         { status: 401 }
       )
     }

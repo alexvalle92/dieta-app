@@ -12,7 +12,7 @@ import { Toaster } from "sonner"
 
 export default function ClientLoginPage() {
   const router = useRouter()
-  const [cpf, setCpf] = useState('')
+  const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
@@ -27,9 +27,18 @@ export default function ClientLoginPage() {
     return value
   }
 
-  const handleCPFChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatCPF(e.target.value)
-    setCpf(formatted)
+  const isEmail = (value: string) => {
+    return value.includes('@')
+  }
+
+  const handleIdentifierChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    if (isEmail(value)) {
+      setIdentifier(value)
+    } else {
+      const formatted = formatCPF(value)
+      setIdentifier(formatted)
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -37,18 +46,21 @@ export default function ClientLoginPage() {
     setIsLoading(true)
 
     try {
-      const cpfNumbers = cpf.replace(/\D/g, '')
+      const isEmailLogin = isEmail(identifier)
+      const loginData = isEmailLogin 
+        ? { email: identifier, password }
+        : { cpf: identifier.replace(/\D/g, ''), password }
       
       const response = await fetch('/api/auth/login-cliente', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cpf: cpfNumbers, password }),
+        body: JSON.stringify(loginData),
       })
 
       const data = await response.json()
 
       if (!response.ok) {
-        toast.error(data.error || "CPF ou senha inválidos")
+        toast.error(data.error || "CPF/Email ou senha inválidos")
         return
       }
 
@@ -70,13 +82,12 @@ export default function ClientLoginPage() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="cpf">CPF</Label>
+              <Label htmlFor="identifier">CPF ou E-mail</Label>
               <Input
-                id="cpf"
-                placeholder="000.000.000-00"
-                value={cpf}
-                onChange={handleCPFChange}
-                maxLength={14}
+                id="identifier"
+                placeholder="000.000.000-00 ou email@exemplo.com"
+                value={identifier}
+                onChange={handleIdentifierChange}
                 required
                 disabled={isLoading}
               />
