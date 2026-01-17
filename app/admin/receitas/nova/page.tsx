@@ -25,6 +25,7 @@ export default function NovaReceitaPage() {
     prep_time: '',
     servings: '',
     calories: '',
+    tips: '',
   })
 
   const [ingredients, setIngredients] = useState<string[]>(['', ''])
@@ -94,6 +95,7 @@ export default function NovaReceitaPage() {
         calories: formData.calories ? parseInt(formData.calories) : null,
         ingredients: validIngredients,
         preparation: validSteps.join('\n'),
+        tips: formData.tips.trim() || null,
       }
 
       const response = await fetch('/api/admin/recipes', {
@@ -286,6 +288,18 @@ export default function NovaReceitaPage() {
                     </div>
                   ))}
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="tips">Dicas Extras / Observações</Label>
+                <Textarea 
+                  id="tips" 
+                  placeholder="Adicione dicas extras, observações ou sugestões para a receita..." 
+                  rows={4}
+                  value={formData.tips}
+                  onChange={(e) => setFormData({ ...formData, tips: e.target.value })}
+                  disabled={isSubmitting}
+                />
               </div>
 
               <Card className="border-2">

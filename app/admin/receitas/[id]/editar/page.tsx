@@ -20,6 +20,7 @@ interface Recipe {
   description: string | null
   ingredients: string[]
   preparation: string
+  tips: string | null
   prep_time: number | null
   servings: number | null
   calories: number | null
@@ -40,6 +41,7 @@ export default function EditarReceitaPage({ params }: { params: Promise<{ id: st
     prep_time: '',
     servings: '',
     calories: '',
+    tips: '',
   })
 
   const [ingredients, setIngredients] = useState<string[]>([''])
@@ -65,6 +67,7 @@ export default function EditarReceitaPage({ params }: { params: Promise<{ id: st
           prep_time: recipeData.prep_time?.toString() || '',
           servings: recipeData.servings?.toString() || '',
           calories: recipeData.calories?.toString() || '',
+          tips: recipeData.tips || '',
         })
 
         setIngredients(recipeData.ingredients && recipeData.ingredients.length > 0 
@@ -149,6 +152,7 @@ export default function EditarReceitaPage({ params }: { params: Promise<{ id: st
         calories: formData.calories ? parseInt(formData.calories) : null,
         ingredients: validIngredients,
         preparation: validSteps.join('\n'),
+        tips: formData.tips.trim() || null,
       }
 
       const response = await fetch(`/api/admin/recipes/${id}`, {
@@ -372,6 +376,18 @@ export default function EditarReceitaPage({ params }: { params: Promise<{ id: st
                     </div>
                   ))}
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="tips">Dicas Extras / Observações</Label>
+                <Textarea 
+                  id="tips" 
+                  placeholder="Adicione dicas extras, observações ou sugestões para a receita..." 
+                  rows={4}
+                  value={formData.tips}
+                  onChange={(e) => setFormData({ ...formData, tips: e.target.value })}
+                  disabled={isSubmitting}
+                />
               </div>
 
               <Card className="border-2">

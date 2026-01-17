@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { title, description, ingredients, preparation, prep_time, servings, calories, category, image_url } = body
+    const { title, description, ingredients, preparation, prep_time, servings, calories, category, image_url, tips } = body
 
     if (!title || !ingredients || !preparation) {
       return NextResponse.json(
@@ -78,6 +78,7 @@ export async function POST(request: NextRequest) {
         description: description || null,
         ingredients,
         preparation,
+        tips: tips || null,
         prepTime: prep_time || null,
         servings: servings || null,
         calories: calories || null,

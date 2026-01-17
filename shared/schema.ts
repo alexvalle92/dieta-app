@@ -49,6 +49,7 @@ export const recipes = pgTable("recipes", {
   description: text("description"),
   ingredients: text("ingredients").array().notNull().default([]),
   preparation: text("preparation").notNull(),
+  tips: text("tips"),
   prepTime: integer("prep_time"),
   servings: integer("servings"),
   calories: integer("calories"),

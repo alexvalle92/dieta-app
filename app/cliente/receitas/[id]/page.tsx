@@ -17,6 +17,7 @@ interface Recipe {
   description: string | null
   ingredients: string[]
   preparation: string
+  tips: string | null
   prep_time: number | null
   servings: number | null
   calories: number | null
@@ -181,6 +182,17 @@ export default function ReceitaDetalhePage({ params }: { params: Promise<{ id: s
                 </ol>
               </CardContent>
             </Card>
+
+            {recipe.tips && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Dicas e Observações</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-foreground whitespace-pre-wrap">{recipe.tips}</p>
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           <div className="space-y-6">
