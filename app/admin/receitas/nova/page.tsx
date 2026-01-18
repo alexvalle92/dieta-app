@@ -101,7 +101,7 @@ export default function NovaReceitaPage() {
         ingredients: validIngredients,
         preparation: validSteps.join('\n'),
         tips: formData.tips.trim() || null,
-        portion_quantity: formData.portion_quantity ? parseFloat(formData.portion_quantity.replace(',', '.')) : null,
+        portionQuantity: formData.portion_quantity ? parseFloat(formData.portion_quantity.replace(',', '.')) : null,
         proteins: formData.proteins ? parseFloat(formData.proteins.replace(',', '.')) : null,
         lipids: formData.lipids ? parseFloat(formData.lipids.replace(',', '.')) : null,
         carbohydrates: formData.carbohydrates ? parseFloat(formData.carbohydrates.replace(',', '.')) : null,
