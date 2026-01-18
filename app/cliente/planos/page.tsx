@@ -19,6 +19,9 @@ import {
   PlanExpirationAlert,
   PlanExpirationBadge,
 } from "@/components/plan-expiration-alert";
+import { Pagination } from "@/components/pagination";
+
+const ITEMS_PER_PAGE = 10;
 
 interface MealPlan {
   id: string;
@@ -40,6 +43,7 @@ interface MealPlan {
 export default function ClientPlanosPage() {
   const [mealPlans, setMealPlans] = useState<MealPlan[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     fetchMealPlans();
@@ -92,13 +96,18 @@ export default function ClientPlanosPage() {
 
   const formatDate = (dateString: string) => {
     try {
-      // Usar T00:00:00 para garantir que a data seja interpretada como local e não UTC
       const date = new Date(dateString + "T00:00:00");
       return format(date, "dd/MM/yyyy", { locale: ptBR });
     } catch (error) {
       return dateString;
     }
   };
+
+  const totalPages = Math.ceil(mealPlans.length / ITEMS_PER_PAGE);
+  const paginatedPlans = mealPlans.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
 
   if (isLoading) {
     return (
@@ -151,7 +160,7 @@ export default function ClientPlanosPage() {
               }))}
               variant="list"
             />
-            {mealPlans.map((plano) => (
+            {paginatedPlans.map((plano) => (
               <div key={plano.id}>
                 <Card className="transition-all hover:shadow-lg">
                   <CardHeader>
@@ -208,6 +217,11 @@ export default function ClientPlanosPage() {
                 </Card>
               </div>
             ))}
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
           </div>
         )}
       </main>

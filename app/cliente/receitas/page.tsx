@@ -10,6 +10,9 @@ import { Clock, Users, ChefHat, Search, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
 import { Toaster } from "sonner"
+import { Pagination } from "@/components/pagination"
+
+const ITEMS_PER_PAGE = 9
 
 interface Recipe {
   id: string
@@ -25,6 +28,7 @@ export default function ReceitasPage() {
   const [receitas, setReceitas] = useState<Recipe[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
 
   useEffect(() => {
     fetchRecipes()
@@ -54,12 +58,19 @@ export default function ReceitasPage() {
 
   const handleSearch = (value: string) => {
     setSearchTerm(value)
+    setCurrentPage(1)
     if (value.trim()) {
       fetchRecipes(value.trim())
     } else {
       fetchRecipes()
     }
   }
+
+  const totalPages = Math.ceil(receitas.length / ITEMS_PER_PAGE)
+  const paginatedReceitas = receitas.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  )
 
   const getCategoryLabel = (category: string | null) => {
     if (!category) return 'Sem categoria'
@@ -117,46 +128,53 @@ export default function ReceitasPage() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {receitas.map((receita) => (
-              <Card key={receita.id} className="flex flex-col transition-all hover:shadow-lg">
-                <CardHeader>
-                  <div className="mb-2 flex items-center justify-between">
-                    <Badge variant="secondary">{getCategoryLabel(receita.category)}</Badge>
-                    {receita.calories && (
-                      <Badge variant="outline">{receita.calories} kcal</Badge>
-                    )}
-                  </div>
-                  <CardTitle className="text-lg">{receita.title}</CardTitle>
-                  <CardDescription>{receita.description || 'Receita saudável e nutritiva'}</CardDescription>
-                </CardHeader>
-                <CardContent className="flex-1">
-                  <div className="space-y-2 text-sm text-muted-foreground">
-                    {receita.prep_time && (
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4" />
-                        <span>{receita.prep_time} min</span>
-                      </div>
-                    )}
-                    {receita.servings && (
-                      <div className="flex items-center gap-2">
-                        <Users className="h-4 w-4" />
-                        <span>{receita.servings} {receita.servings === 1 ? 'porção' : 'porções'}</span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="mt-4">
-                    <Link href={`/cliente/receitas/${receita.id}`}>
-                      <Button className="w-full gap-2">
-                        <ChefHat className="h-4 w-4" />
-                        Ver Receita
-                      </Button>
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <>
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {paginatedReceitas.map((receita) => (
+                <Card key={receita.id} className="flex flex-col transition-all hover:shadow-lg">
+                  <CardHeader>
+                    <div className="mb-2 flex items-center justify-between">
+                      <Badge variant="secondary">{getCategoryLabel(receita.category)}</Badge>
+                      {receita.calories && (
+                        <Badge variant="outline">{receita.calories} kcal</Badge>
+                      )}
+                    </div>
+                    <CardTitle className="text-lg">{receita.title}</CardTitle>
+                    <CardDescription>{receita.description || 'Receita saudável e nutritiva'}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex-1">
+                    <div className="space-y-2 text-sm text-muted-foreground">
+                      {receita.prep_time && (
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-4 w-4" />
+                          <span>{receita.prep_time} min</span>
+                        </div>
+                      )}
+                      {receita.servings && (
+                        <div className="flex items-center gap-2">
+                          <Users className="h-4 w-4" />
+                          <span>{receita.servings} {receita.servings === 1 ? 'porção' : 'porções'}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="mt-4">
+                      <Link href={`/cliente/receitas/${receita.id}`}>
+                        <Button className="w-full gap-2">
+                          <ChefHat className="h-4 w-4" />
+                          Ver Receita
+                        </Button>
+                      </Link>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          </>
         )}
       </main>
     </div>

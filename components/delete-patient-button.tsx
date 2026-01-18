@@ -20,9 +20,10 @@ import { toast } from "sonner"
 interface DeletePatientButtonProps {
   patientId: string
   patientName: string
+  onDelete?: () => void
 }
 
-export function DeletePatientButton({ patientId, patientName }: DeletePatientButtonProps) {
+export function DeletePatientButton({ patientId, patientName, onDelete }: DeletePatientButtonProps) {
   const router = useRouter()
   const [isDeleting, setIsDeleting] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
@@ -43,7 +44,11 @@ export function DeletePatientButton({ patientId, patientName }: DeletePatientBut
 
       toast.success('Paciente deletado com sucesso!')
       setIsOpen(false)
-      router.refresh()
+      if (onDelete) {
+        onDelete()
+      } else {
+        router.refresh()
+      }
     } catch (error) {
       toast.error('Erro ao deletar paciente')
     } finally {

@@ -11,6 +11,9 @@ import Link from "next/link"
 import { toast } from "sonner"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
+import { Pagination } from "@/components/pagination"
+
+const ITEMS_PER_PAGE = 10
 
 interface MealPlan {
   id: string
@@ -35,6 +38,7 @@ export default function PlanosAdminPage() {
   const [planos, setPlanos] = useState<MealPlan[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
 
   useEffect(() => {
     fetchPlans()
@@ -64,12 +68,19 @@ export default function PlanosAdminPage() {
 
   const handleSearch = (value: string) => {
     setSearchTerm(value)
+    setCurrentPage(1)
     if (value.trim()) {
       fetchPlans(value.trim())
     } else {
       fetchPlans()
     }
   }
+
+  const totalPages = Math.ceil(planos.length / ITEMS_PER_PAGE)
+  const paginatedPlanos = planos.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  )
 
   const getStatusLabel = (status: string) => {
     switch (status) {
@@ -168,39 +179,46 @@ export default function PlanosAdminPage() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-6">
-            {planos.map((plano) => (
-              <Card key={plano.id} className="transition-all hover:shadow-lg">
-                <CardHeader>
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                    <div>
-                      <div className="flex items-center gap-3">
-                        <CardTitle className="text-xl">{plano.title}</CardTitle>
-                        <Badge variant={getStatusVariant(plano.status)}>
-                          {getStatusLabel(plano.status)}
-                        </Badge>
+          <>
+            <div className="grid gap-6">
+              {paginatedPlanos.map((plano) => (
+                <Card key={plano.id} className="transition-all hover:shadow-lg">
+                  <CardHeader>
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                      <div>
+                        <div className="flex items-center gap-3">
+                          <CardTitle className="text-xl">{plano.title}</CardTitle>
+                          <Badge variant={getStatusVariant(plano.status)}>
+                            {getStatusLabel(plano.status)}
+                          </Badge>
+                        </div>
+                        <CardDescription className="mt-2">
+                          {getCalories(plano.plan_data)} • Criado em {formatDate(plano.created_at)}
+                        </CardDescription>
                       </div>
-                      <CardDescription className="mt-2">
-                        {getCalories(plano.plan_data)} • Criado em {formatDate(plano.created_at)}
-                      </CardDescription>
+                      <Link href={`/admin/planos/${plano.id}/editar`}>
+                        <Button variant="outline" size="sm" className="gap-2 bg-transparent">
+                          <Edit className="h-4 w-4" />
+                          Editar
+                        </Button>
+                      </Link>
                     </div>
-                    <Link href={`/admin/planos/${plano.id}/editar`}>
-                      <Button variant="outline" size="sm" className="gap-2 bg-transparent">
-                        <Edit className="h-4 w-4" />
-                        Editar
-                      </Button>
-                    </Link>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-2 text-sm">
-                    <User className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-foreground">Paciente: {plano.patient.name}</span>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center gap-2 text-sm">
+                      <User className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-foreground">Paciente: {plano.patient.name}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          </>
         )}
       </main>
     </div>
