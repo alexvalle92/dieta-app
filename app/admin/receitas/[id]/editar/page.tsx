@@ -21,11 +21,11 @@ interface Recipe {
   ingredients: string[]
   preparation: string
   tips: string | null
-  prep_time: number | null
+  prepTime: number | null
   servings: number | null
   calories: number | null
   category: string | null
-  portion_quantity: number | null
+  portionQuantity: number | null
   proteins: number | null
   lipids: number | null
   carbohydrates: number | null
@@ -74,11 +74,11 @@ export default function EditarReceitaPage({ params }: { params: Promise<{ id: st
           title: recipeData.title,
           description: recipeData.description || '',
           category: recipeData.category || '',
-          prep_time: recipeData.prep_time?.toString() || '',
+          prep_time: recipeData.prepTime?.toString() || '',
           servings: recipeData.servings?.toString() || '',
           calories: recipeData.calories?.toString() || '',
           tips: recipeData.tips || '',
-          portion_quantity: recipeData.portion_quantity?.toString() || '',
+          portion_quantity: recipeData.portionQuantity?.toString() || '',
           proteins: recipeData.proteins?.toString() || '',
           lipids: recipeData.lipids?.toString() || '',
           carbohydrates: recipeData.carbohydrates?.toString() || '',
@@ -168,7 +168,7 @@ export default function EditarReceitaPage({ params }: { params: Promise<{ id: st
         ingredients: validIngredients,
         preparation: validSteps.join('\n'),
         tips: formData.tips.trim() || null,
-        portionQuantity: formData.portion_quantity ? parseFloat(formData.portion_quantity.replace(',', '.')) : null,
+        portion_quantity: formData.portion_quantity ? parseFloat(formData.portion_quantity.replace(',', '.')) : null,
         proteins: formData.proteins ? parseFloat(formData.proteins.replace(',', '.')) : null,
         lipids: formData.lipids ? parseFloat(formData.lipids.replace(',', '.')) : null,
         carbohydrates: formData.carbohydrates ? parseFloat(formData.carbohydrates.replace(',', '.')) : null,
