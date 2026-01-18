@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, date, boolean, varchar, integer, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, timestamp, date, boolean, varchar, integer, jsonb, real } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
 export const patients = pgTable("patients", {
@@ -55,11 +55,11 @@ export const recipes = pgTable("recipes", {
   calories: integer("calories"),
   category: text("category"),
   imageUrl: text("image_url"),
-  portionQuantity: integer("portion_quantity"),
-  proteins: integer("proteins"),
-  lipids: integer("lipids"),
-  carbohydrates: integer("carbohydrates"),
-  fiber: integer("fiber"),
+  portionQuantity: real("portion_quantity"),
+  proteins: real("proteins"),
+  lipids: real("lipids"),
+  carbohydrates: real("carbohydrates"),
+  fiber: real("fiber"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });

@@ -101,11 +101,11 @@ export default function NovaReceitaPage() {
         ingredients: validIngredients,
         preparation: validSteps.join('\n'),
         tips: formData.tips.trim() || null,
-        portion_quantity: formData.portion_quantity ? parseInt(formData.portion_quantity) : null,
-        proteins: formData.proteins ? parseInt(formData.proteins) : null,
-        lipids: formData.lipids ? parseInt(formData.lipids) : null,
-        carbohydrates: formData.carbohydrates ? parseInt(formData.carbohydrates) : null,
-        fiber: formData.fiber ? parseInt(formData.fiber) : null,
+        portion_quantity: formData.portion_quantity ? parseFloat(formData.portion_quantity.replace(',', '.')) : null,
+        proteins: formData.proteins ? parseFloat(formData.proteins.replace(',', '.')) : null,
+        lipids: formData.lipids ? parseFloat(formData.lipids.replace(',', '.')) : null,
+        carbohydrates: formData.carbohydrates ? parseFloat(formData.carbohydrates.replace(',', '.')) : null,
+        fiber: formData.fiber ? parseFloat(formData.fiber.replace(',', '.')) : null,
       }
 
       const response = await fetch('/api/admin/recipes', {
@@ -322,7 +322,8 @@ export default function NovaReceitaPage() {
                       <Label htmlFor="portion_quantity">Quantidade (g)</Label>
                       <Input 
                         id="portion_quantity" 
-                        type="number"
+                        type="text"
+                        inputMode="decimal"
                         placeholder="100"
                         value={formData.portion_quantity}
                         onChange={(e) => setFormData({ ...formData, portion_quantity: e.target.value })}
@@ -344,8 +345,9 @@ export default function NovaReceitaPage() {
                       <Label htmlFor="proteins">Proteínas (g)</Label>
                       <Input 
                         id="proteins" 
-                        type="number"
-                        placeholder="25"
+                        type="text"
+                        inputMode="decimal"
+                        placeholder="25,5"
                         value={formData.proteins}
                         onChange={(e) => setFormData({ ...formData, proteins: e.target.value })}
                         disabled={isSubmitting}
@@ -355,8 +357,9 @@ export default function NovaReceitaPage() {
                       <Label htmlFor="lipids">Lipídeos (g)</Label>
                       <Input 
                         id="lipids" 
-                        type="number"
-                        placeholder="10"
+                        type="text"
+                        inputMode="decimal"
+                        placeholder="10,2"
                         value={formData.lipids}
                         onChange={(e) => setFormData({ ...formData, lipids: e.target.value })}
                         disabled={isSubmitting}
@@ -366,8 +369,9 @@ export default function NovaReceitaPage() {
                       <Label htmlFor="carbohydrates">Carboidratos (g)</Label>
                       <Input 
                         id="carbohydrates" 
-                        type="number"
-                        placeholder="30"
+                        type="text"
+                        inputMode="decimal"
+                        placeholder="30,5"
                         value={formData.carbohydrates}
                         onChange={(e) => setFormData({ ...formData, carbohydrates: e.target.value })}
                         disabled={isSubmitting}
@@ -377,8 +381,9 @@ export default function NovaReceitaPage() {
                       <Label htmlFor="fiber">Fibra Alimentar (g)</Label>
                       <Input 
                         id="fiber" 
-                        type="number"
-                        placeholder="5"
+                        type="text"
+                        inputMode="decimal"
+                        placeholder="5,3"
                         value={formData.fiber}
                         onChange={(e) => setFormData({ ...formData, fiber: e.target.value })}
                         disabled={isSubmitting}
