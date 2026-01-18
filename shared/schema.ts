@@ -55,6 +55,11 @@ export const recipes = pgTable("recipes", {
   calories: integer("calories"),
   category: text("category"),
   imageUrl: text("image_url"),
+  portionQuantity: integer("portion_quantity"),
+  proteins: integer("proteins"),
+  lipids: integer("lipids"),
+  carbohydrates: integer("carbohydrates"),
+  fiber: integer("fiber"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });

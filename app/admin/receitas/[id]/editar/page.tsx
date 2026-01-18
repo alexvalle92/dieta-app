@@ -25,6 +25,11 @@ interface Recipe {
   servings: number | null
   calories: number | null
   category: string | null
+  portion_quantity: number | null
+  proteins: number | null
+  lipids: number | null
+  carbohydrates: number | null
+  fiber: number | null
 }
 
 export default function EditarReceitaPage({ params }: { params: Promise<{ id: string }> }) {
@@ -42,6 +47,11 @@ export default function EditarReceitaPage({ params }: { params: Promise<{ id: st
     servings: '',
     calories: '',
     tips: '',
+    portion_quantity: '',
+    proteins: '',
+    lipids: '',
+    carbohydrates: '',
+    fiber: '',
   })
 
   const [ingredients, setIngredients] = useState<string[]>([''])
@@ -68,6 +78,11 @@ export default function EditarReceitaPage({ params }: { params: Promise<{ id: st
           servings: recipeData.servings?.toString() || '',
           calories: recipeData.calories?.toString() || '',
           tips: recipeData.tips || '',
+          portion_quantity: recipeData.portion_quantity?.toString() || '',
+          proteins: recipeData.proteins?.toString() || '',
+          lipids: recipeData.lipids?.toString() || '',
+          carbohydrates: recipeData.carbohydrates?.toString() || '',
+          fiber: recipeData.fiber?.toString() || '',
         })
 
         setIngredients(recipeData.ingredients && recipeData.ingredients.length > 0 
@@ -153,6 +168,11 @@ export default function EditarReceitaPage({ params }: { params: Promise<{ id: st
         ingredients: validIngredients,
         preparation: validSteps.join('\n'),
         tips: formData.tips.trim() || null,
+        portion_quantity: formData.portion_quantity ? parseInt(formData.portion_quantity) : null,
+        proteins: formData.proteins ? parseInt(formData.proteins) : null,
+        lipids: formData.lipids ? parseInt(formData.lipids) : null,
+        carbohydrates: formData.carbohydrates ? parseInt(formData.carbohydrates) : null,
+        fiber: formData.fiber ? parseInt(formData.fiber) : null,
       }
 
       const response = await fetch(`/api/admin/recipes/${id}`, {
@@ -395,7 +415,18 @@ export default function EditarReceitaPage({ params }: { params: Promise<{ id: st
                   <CardTitle className="text-lg">Informações Nutricionais (por porção)</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="grid gap-4 sm:grid-cols-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="portion_quantity">Quantidade (g)</Label>
+                      <Input 
+                        id="portion_quantity" 
+                        type="number"
+                        placeholder="100"
+                        value={formData.portion_quantity}
+                        onChange={(e) => setFormData({ ...formData, portion_quantity: e.target.value })}
+                        disabled={isSubmitting}
+                      />
+                    </div>
                     <div className="space-y-2">
                       <Label htmlFor="calorias">Calorias (kcal)</Label>
                       <Input 
@@ -404,6 +435,50 @@ export default function EditarReceitaPage({ params }: { params: Promise<{ id: st
                         placeholder="350"
                         value={formData.calories}
                         onChange={(e) => setFormData({ ...formData, calories: e.target.value })}
+                        disabled={isSubmitting}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="proteins">Proteínas (g)</Label>
+                      <Input 
+                        id="proteins" 
+                        type="number"
+                        placeholder="25"
+                        value={formData.proteins}
+                        onChange={(e) => setFormData({ ...formData, proteins: e.target.value })}
+                        disabled={isSubmitting}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="lipids">Lipídeos (g)</Label>
+                      <Input 
+                        id="lipids" 
+                        type="number"
+                        placeholder="10"
+                        value={formData.lipids}
+                        onChange={(e) => setFormData({ ...formData, lipids: e.target.value })}
+                        disabled={isSubmitting}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="carbohydrates">Carboidratos (g)</Label>
+                      <Input 
+                        id="carbohydrates" 
+                        type="number"
+                        placeholder="30"
+                        value={formData.carbohydrates}
+                        onChange={(e) => setFormData({ ...formData, carbohydrates: e.target.value })}
+                        disabled={isSubmitting}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="fiber">Fibra Alimentar (g)</Label>
+                      <Input 
+                        id="fiber" 
+                        type="number"
+                        placeholder="5"
+                        value={formData.fiber}
+                        onChange={(e) => setFormData({ ...formData, fiber: e.target.value })}
                         disabled={isSubmitting}
                       />
                     </div>
