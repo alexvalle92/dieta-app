@@ -136,7 +136,7 @@ export default function SetupPage() {
                   id="email"
                   name="email"
                   type="email"
-                  placeholder="maria@nutriplan.com"
+                  placeholder="maria@plana.com"
                   value={formData.email}
                   onChange={handleChange}
                   required

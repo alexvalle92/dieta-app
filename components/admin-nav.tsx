@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
 import { LayoutDashboard, Users, FileText, BookOpen, Settings } from "lucide-react"
@@ -34,8 +35,9 @@ export function AdminNav() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center gap-8">
-            <Link href="/admin/dashboard" className="text-xl font-bold text-primary">
-              NutriPlan Admin
+            <Link href="/admin/dashboard" className="flex items-center gap-2">
+              <Image src="/LogoPlanA.png" alt="Plana" width={120} height={40} className="h-10 w-auto" />
+              <span className="text-sm font-medium text-muted-foreground">Admin</span>
             </Link>
             <div className="hidden md:flex md:gap-4">
               {navItems.map((item) => {

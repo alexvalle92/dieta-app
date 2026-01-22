@@ -1,6 +1,7 @@
 'use client'
 
 import Link from "next/link"
+import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
@@ -47,10 +48,10 @@ export default function AdminLoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-background to-muted/20 px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
-          <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-            <Shield className="h-6 w-6 text-primary" />
+          <div className="mx-auto mb-4">
+            <Image src="/LogoPlanA.png" alt="Plana" width={180} height={60} className="h-16 w-auto" />
           </div>
-          <CardTitle className="text-3xl font-bold text-primary">Área Administrativa</CardTitle>
+          <CardTitle className="text-xl font-bold text-primary">Área Administrativa</CardTitle>
           <CardDescription>Acesso restrito para nutricionistas</CardDescription>
         </CardHeader>
         <CardContent>
@@ -60,7 +61,7 @@ export default function AdminLoginPage() {
               <Input
                 id="email"
                 type="email"
-                placeholder="admin@nutriplan.com"
+                placeholder="admin@plana.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required

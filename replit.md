@@ -1,8 +1,8 @@
-# NutriPlan - Automated Meal Planning Platform
+# Plana - Automated Meal Planning Platform
 
 ## Overview
 
-NutriPlan is a mobile-first web application providing automated, personalized meal plans for weight loss clients. It serves patients seeking affordable nutrition guidance and nutritionists managing their practice. Built with Next.js and Supabase, the platform offers a scalable, low-ticket solution for nutrition services, addressing patient non-adherence to high-cost plans with an accessible alternative priced between R$29-69 per plan.
+Plana is a mobile-first web application providing automated, personalized meal plans for weight loss clients. It serves patients seeking affordable nutrition guidance and nutritionists managing their practice. Built with Next.js and Supabase, the platform offers a scalable, low-ticket solution for nutrition services, addressing patient non-adherence to high-cost plans with an accessible alternative priced between R$29-69 per plan.
 
 ## User Preferences
 
