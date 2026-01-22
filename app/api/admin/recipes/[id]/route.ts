@@ -59,7 +59,7 @@ export async function PUT(
 
     const { id } = await context.params
     const body = await request.json()
-    const { title, description, ingredients, preparation, prep_time, servings, calories, category, image_url, tips, portion_quantity, proteins, lipids, carbohydrates, fiber } = body
+    const { title, description, ingredients, preparation, prep_time, servings, calories, category, image_url, tips, portion_quantity, proteins, lipids, carbohydrates, fiber, active_customer } = body
 
     if (!title || !ingredients || !preparation) {
       return NextResponse.json(
@@ -93,6 +93,7 @@ export async function PUT(
         lipids: lipids || null,
         carbohydrates: carbohydrates || null,
         fiber: fiber || null,
+        activeCustomer: active_customer !== undefined ? active_customer : true,
       })
       .where(eq(recipes.id, id))
       .returning()

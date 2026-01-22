@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Switch } from "@/components/ui/switch"
 import { ArrowLeft, Plus, Trash2 } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
@@ -31,6 +32,7 @@ export default function NovaReceitaPage() {
     lipids: '',
     carbohydrates: '',
     fiber: '',
+    active_customer: true,
   })
 
   const [ingredients, setIngredients] = useState<string[]>(['', ''])
@@ -106,6 +108,7 @@ export default function NovaReceitaPage() {
         lipids: formData.lipids ? parseFloat(formData.lipids.replace(',', '.')) : null,
         carbohydrates: formData.carbohydrates ? parseFloat(formData.carbohydrates.replace(',', '.')) : null,
         fiber: formData.fiber ? parseFloat(formData.fiber.replace(',', '.')) : null,
+        active_customer: formData.active_customer,
       }
 
       const response = await fetch('/api/admin/recipes', {
@@ -308,6 +311,21 @@ export default function NovaReceitaPage() {
                   rows={4}
                   value={formData.tips}
                   onChange={(e) => setFormData({ ...formData, tips: e.target.value })}
+                  disabled={isSubmitting}
+                />
+              </div>
+
+              <div className="flex items-center justify-between rounded-lg border p-4">
+                <div className="space-y-0.5">
+                  <Label htmlFor="active_customer" className="text-base">Visível para Clientes</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Quando ativado, esta receita será exibida para os clientes
+                  </p>
+                </div>
+                <Switch
+                  id="active_customer"
+                  checked={formData.active_customer}
+                  onCheckedChange={(checked) => setFormData({ ...formData, active_customer: checked })}
                   disabled={isSubmitting}
                 />
               </div>

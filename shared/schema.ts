@@ -60,6 +60,7 @@ export const recipes = pgTable("recipes", {
   lipids: real("lipids"),
   carbohydrates: real("carbohydrates"),
   fiber: real("fiber"),
+  activeCustomer: boolean("active_customer").default(true),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });

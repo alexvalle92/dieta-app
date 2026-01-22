@@ -88,7 +88,7 @@ export default function ClientLoginPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
           <div className="mx-auto mb-4">
-            <Image src="/LogoPlanA.png" alt="Plana" width={180} height={60} />
+            <Image src="/LogoPlanA.png" alt="Plana" width={225} height={139} />
           </div>
           <CardDescription>
             Entre com suas credenciais para acessar seus planos
