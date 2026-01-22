@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/server/db'
 import { recipes } from '@/shared/schema'
 import { requireAuth } from '@/lib/auth'
-import { desc, ilike, or } from 'drizzle-orm'
+import { desc, ilike, or, and, eq } from 'drizzle-orm'
 
 export async function GET(request: NextRequest) {
   try {
@@ -20,14 +20,19 @@ export async function GET(request: NextRequest) {
 
     let recipesList;
     
+    const baseCondition = eq(recipes.activeCustomer, true);
+
     if (search) {
       recipesList = await db
         .select()
         .from(recipes)
         .where(
-          or(
-            ilike(recipes.title, `%${search}%`),
-            ilike(recipes.category, `%${search}%`)
+          and(
+            baseCondition,
+            or(
+              ilike(recipes.title, `%${search}%`),
+              ilike(recipes.category, `%${search}%`)
+            )
           )
         )
         .orderBy(desc(recipes.createdAt))
@@ -35,6 +40,7 @@ export async function GET(request: NextRequest) {
       recipesList = await db
         .select()
         .from(recipes)
+        .where(baseCondition)
         .orderBy(desc(recipes.createdAt))
     }
 
