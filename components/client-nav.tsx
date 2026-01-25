@@ -62,7 +62,7 @@ export function ClientNav() {
               userName={userData.name} 
               userEmail={userData.email}
               userType="patient"
-              showMyDataLink={true}
+              showMyDataLink={false}
             />
           )}
         </div>
