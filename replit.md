@@ -109,3 +109,20 @@ Preferred communication style: Simple, everyday language.
 ### Font & Typography
 
 **Inter** (Google Fonts): Primary application font.
+
+### Progressive Web App (PWA)
+
+**Configuration:** `next-pwa` package with workbox for offline caching and service worker management.
+
+**Manifest:** Located at `public/manifest.json` with app name, theme colors, icons, and display settings.
+
+**Icons:** Auto-generated from logo using Sharp, stored in `public/icons/` in sizes 72, 96, 128, 144, 152, 192, 384, 512 pixels.
+
+**Features:**
+- Installable on mobile devices and desktops
+- Offline page (`/offline`) for network failures
+- Runtime caching for fonts, images, and static assets
+- Apple Web App and Android TWA ready
+- Theme color: #557432 (Plana green)
+
+**Play Store Publishing:** Ready for TWA (Trusted Web Activities) deployment. Use Bubblewrap or PWABuilder to generate Android APK.
