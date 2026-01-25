@@ -6,6 +6,9 @@ const withPWA = withPWAInit({
   skipWaiting: true,
   disable: process.env.NODE_ENV === "development",
   buildExcludes: [/middleware-manifest\.json$/],
+  fallbacks: {
+    document: "/offline",
+  },
   runtimeCaching: [
     {
       urlPattern: /^https:\/\/fonts\.(?:gstatic)\.com\/.*/i,
@@ -174,6 +177,7 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  turbopack: {},
 };
 
 export default withPWA(nextConfig);
