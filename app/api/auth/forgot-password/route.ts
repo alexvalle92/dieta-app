@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/server/db'
-import { patients, passwordResetTokens } from '@/shared/schema'
-import { eq, and } from 'drizzle-orm'
-import crypto from 'crypto'
+
+const WEBHOOK_URL = 'https://n8n.nutritamilivalle.com.br/webhook/d1b0eaf3-addf-4515-b91d-419a58bf0915'
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,56 +16,43 @@ export async function POST(request: NextRequest) {
 
     const cpfNumbers = cpf.replace(/\D/g, '')
 
-    const [patient] = await db
-      .select({
-        id: patients.id,
-        name: patients.name,
-        email: patients.email,
-      })
-      .from(patients)
-      .where(eq(patients.cpf, cpfNumbers))
-      .limit(1)
+    const webhookResponse = await fetch(WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cpf: cpfNumbers }),
+    })
 
-    if (!patient) {
+    if (!webhookResponse.ok) {
       return NextResponse.json(
-        { error: 'CPF não encontrado no sistema' },
+        { error: 'Erro ao processar solicitação. Tente novamente mais tarde.' },
+        { status: 500 }
+      )
+    }
+
+    const data = await webhookResponse.json()
+
+    if (data.sucesso === false) {
+      return NextResponse.json(
+        { error: data.mensagemErro || 'CPF não encontrado no sistema' },
         { status: 404 }
       )
     }
 
-    const token = crypto.randomBytes(32).toString('hex')
-    
-    const expiresAt = new Date()
-    expiresAt.setHours(expiresAt.getHours() + 1)
-
-    await db
-      .update(passwordResetTokens)
-      .set({ used: true })
-      .where(and(
-        eq(passwordResetTokens.patientId, patient.id),
-        eq(passwordResetTokens.used, false)
-      ))
-
-    await db
-      .insert(passwordResetTokens)
-      .values({
-        patientId: patient.id,
-        token,
-        expiresAt,
+    if (data.sucesso === true) {
+      return NextResponse.json({ 
+        success: true, 
+        email: data.email,
       })
+    }
 
-    const resetLink = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:5000'}/cliente/redefinir-senha/${token}`
-
-    return NextResponse.json({ 
-      success: true, 
-      message: 'Link de recuperação gerado com sucesso',
-      resetLink,
-      email: patient.email,
-    })
+    return NextResponse.json(
+      { error: 'Resposta inesperada do servidor. Tente novamente.' },
+      { status: 500 }
+    )
   } catch (error) {
     console.error('Forgot password error:', error)
     return NextResponse.json(
-      { error: 'Erro ao processar solicitação de recuperação' },
+      { error: 'Erro ao processar solicitação de recuperação. Tente novamente mais tarde.' },
       { status: 500 }
     )
   }
