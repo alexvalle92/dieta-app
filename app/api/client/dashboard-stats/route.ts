@@ -21,7 +21,12 @@ export async function GET(req: NextRequest) {
       db
         .select({
           id: mealPlans.id,
+          title: mealPlans.title,
           status: mealPlans.status,
+          startDate: mealPlans.startDate,
+          endDate: mealPlans.endDate,
+          dueDateNewMealPlan: mealPlans.dueDateNewMealPlan,
+          paymentUrlNewMealPlan: mealPlans.paymentUrlNewMealPlan,
           createdAt: mealPlans.createdAt
         })
         .from(mealPlans)
@@ -39,6 +44,8 @@ export async function GET(req: NextRequest) {
       ? new Date(allPlans[0].createdAt).toLocaleDateString('pt-BR')
       : 'Nenhum'
 
+    const activePlan = activePlans.length > 0 ? activePlans[0] : null
+
     return NextResponse.json({
       stats: {
         planosAtivos: activePlans.length,
@@ -46,6 +53,22 @@ export async function GET(req: NextRequest) {
         ultimaAtualizacao: lastUpdate,
         receitasDisponiveis: Number(recipesCount[0]?.count) || 0
       },
+      activePlan: activePlan ? {
+        id: activePlan.id,
+        title: activePlan.title,
+        status: activePlan.status,
+        startDate: activePlan.startDate,
+        endDate: activePlan.endDate,
+        dueDateNewMealPlan: activePlan.dueDateNewMealPlan,
+        paymentUrlNewMealPlan: activePlan.paymentUrlNewMealPlan
+      } : null,
+      allPlans: allPlans.map((plan) => ({
+        id: plan.id,
+        endDate: plan.endDate,
+        dueDateNewMealPlan: plan.dueDateNewMealPlan,
+        paymentUrlNewMealPlan: plan.paymentUrlNewMealPlan,
+        status: plan.status
+      })),
       recentPlans: recentPlans.map((plan) => ({
         id: plan.id,
         status: plan.status,
