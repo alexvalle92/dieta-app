@@ -135,6 +135,16 @@ export default function ClientLoginPage() {
             >
               {isLoading ? "Entrando..." : "Entrar"}
             </Button>
+            <div className="text-center pt-2">
+              <Button
+                variant="link"
+                className="text-muted-foreground font-normal hover:text-primary"
+                onClick={() => window.open('https://nutritamilivalle.com.br', '_blank')}
+                type="button"
+              >
+                Ainda não tem uma conta?
+              </Button>
+            </div>
             <Toaster richColors position="top-center" />
             <div className="text-center text-sm text-muted-foreground">
               <Link href="/" className="hover:text-primary hover:underline">
