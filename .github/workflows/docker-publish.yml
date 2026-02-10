@@ -9,6 +9,7 @@ on:
 
 env:
   IMAGE_NAME: plana-app
+  SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
 
 jobs:
   build-and-push:
