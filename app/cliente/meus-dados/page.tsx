@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { ClientNav } from "@/components/client-nav"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { getSession } from "@/lib/auth"
