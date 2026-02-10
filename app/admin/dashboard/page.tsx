@@ -1,11 +1,11 @@
 'use client'
-export const dynamic = 'force-dynamic'
+
 import { AdminNav } from "@/components/admin-nav"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Users, FileText, BookOpen, TrendingUp, Loader2, Plus } from "lucide-react"
 import Link from "next/link"
-import { useEffect, useState } from "react"
+import { Suspense, useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { toast, Toaster } from "sonner"
 
@@ -17,7 +17,7 @@ interface DashboardStats {
   crescimento: number
 }
 
-export default function AdminDashboardPage() {
+function AdminDashboardContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [stats, setStats] = useState<DashboardStats | null>(null)
@@ -247,5 +247,13 @@ export default function AdminDashboardPage() {
         )}
       </main>
     </div>
+  )
+}
+
+export default function AdminDashboardPage() {
+  return (
+    <Suspense fallback={null}>
+      <AdminDashboardContent />
+    </Suspense>
   )
 }
