@@ -5,6 +5,11 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm ci
 COPY . .
+
+# Recebe variável do GitHub Actions
+ARG SUPABASE_DB_URL
+ENV SUPABASE_DB_URL=$SUPABASE_DB_URL
+
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 

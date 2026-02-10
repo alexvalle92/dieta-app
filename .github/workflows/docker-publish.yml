@@ -9,7 +9,6 @@ on:
 
 env:
   IMAGE_NAME: plana-app
-  SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
 
 jobs:
   build-and-push:
@@ -53,3 +52,5 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64
+          build-args: |
+            SUPABASE_DB_URL=${{ secrets.SUPABASE_DB_URL }}
