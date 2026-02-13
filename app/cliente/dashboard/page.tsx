@@ -21,7 +21,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast, Toaster } from "sonner";
 import { PlanExpirationAlert } from "@/components/plan-expiration-alert";
@@ -59,7 +59,7 @@ interface RecentPlan {
   created_at: string;
 }
 
-export default function ClientDashboardPage() {
+function ClientDashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [session, setSession] = useState<{ name: string } | null>(null);
@@ -297,5 +297,13 @@ export default function ClientDashboardPage() {
         )}
       </main>
     </div>
+  );
+}
+
+export default function ClientDashboardPage() {
+  return (
+    <Suspense fallback={null}>
+      <ClientDashboardContent />
+    </Suspense>
   );
 }
