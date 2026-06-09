@@ -33,6 +33,8 @@ export default function EsqueciSenhaPage() {
     setCpf(formatted)
   }
 
+  const WEBHOOK_URL_ESQUECEU_SENHA = "https://n8n-n8n-start.z8qram.easypanel.host/webhook-test/d1b0eaf3-addf-4515-b91d-419a58bf0915";
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
@@ -40,7 +42,7 @@ export default function EsqueciSenhaPage() {
     try {
       const cpfNumbers = cpf.replace(/\D/g, '')
       
-      const response = await fetch('/api/auth/forgot-password', {
+      const response = await fetch(WEBHOOK_URL_ESQUECEU_SENHA, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cpf: cpfNumbers }),
