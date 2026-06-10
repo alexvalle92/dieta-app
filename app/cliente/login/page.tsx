@@ -139,7 +139,7 @@ export default function ClientLoginPage() {
               <Button
                 variant="link"
                 className="text-muted-foreground font-normal hover:text-primary"
-                onClick={() => window.open('https://nutritamilivalle.com.br', '_blank')}
+                onClick={() => window.open('https://forms.nutritamilivalle.com.br', '_blank')}
                 type="button"
               >
                 Ainda não tem uma conta?
