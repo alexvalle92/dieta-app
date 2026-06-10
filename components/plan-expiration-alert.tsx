@@ -273,9 +273,6 @@ export function PlanExpirationAlert({
               Em breve vamos liberar um formulário rápido de atualização para
               ajustar seu próximo plano.
             </p>
-            <p className="mt-2 text-sm font-medium">
-              Valor da renovação: R$ {planPrice.toFixed(2).replace(".", ",")}
-            </p>
           </AlertDescription>
         </Alert>
       );
