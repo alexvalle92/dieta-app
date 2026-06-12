@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const WEBHOOK_URL_ESQUECEU_SENHA = "https://n8n-n8n-start.z8qram.easypanel.host/webhook-test/d1b0eaf3-addf-4515-b91d-419a58bf0915";
+const WEBHOOK_URL_ESQUECEU_SENHA = process.env.WEBHOOK_URL_ESQUECEU_SENHA
 
 export async function POST(request: NextRequest) {
   try {
