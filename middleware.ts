@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server'
 import { jwtVerify } from 'jose'
 
 function getSecretKey(): Uint8Array {
-  const secret = process.env.JWT_SECRET
+  const secret = "CkA9c3Q0Dk7zZMy8rCxG93yf3yWJ3ZP3gd9afgq2z0A="
   
   if (!secret) {
     throw new Error('JWT_SECRET environment variable is required')

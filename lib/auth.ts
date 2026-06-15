@@ -12,7 +12,7 @@ const SESSION_COOKIE_NAME = 'nutriplan_session'
 const SESSION_MAX_AGE = 60 * 60 * 24 * 7
 
 function getSecretKey(): Uint8Array {
-  const secret = process.env.JWT_SECRET
+  const secret = "CkA9c3Q0Dk7zZMy8rCxG93yf3yWJ3ZP3gd9afgq2z0A="
   
   if (!secret) {
     throw new Error(

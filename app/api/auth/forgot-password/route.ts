@@ -1,6 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const WEBHOOK_URL_ESQUECEU_SENHA = process.env.WEBHOOK_URL_ESQUECEU_SENHA
+var WEBHOOK_URL_ESQUECEU_SENHA = ""
+
+const isTestEnvironment =
+  typeof window !== "undefined" &&
+  window.location.hostname.includes("test")
+
+if (isTestEnvironment) {
+  WEBHOOK_URL_ESQUECEU_SENHA = "CkA9c3Q0Dk7zZMy8rCxG93yf3yWJ3ZP3gd9afgq2z0A="
+} else {
+  WEBHOOK_URL_ESQUECEU_SENHA = "CkA9c3Q0Dk7zZMy8rCxG93yf3yWJ3ZP3gd9afgq2z0A="
+}
 
 export async function POST(request: NextRequest) {
   try {
