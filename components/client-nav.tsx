@@ -36,7 +36,7 @@ export function ClientNav() {
             <Link href="/cliente/dashboard" className="flex items-center">
               <Image src="/LogoPlanA.png" alt="Plana" width={120} height={40} className="h-10 w-auto" />
             </Link>
-            <div className="hidden md:flex md:gap-4">
+            <div className="flex gap-2">
               {navItems.map((item) => {
                 const Icon = item.icon
                 const isActive = pathname === item.href
