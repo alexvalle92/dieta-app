@@ -1,19 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-var WEBHOOK_URL_ESQUECEU_SENHA = ""
-
-const isTestEnvironment =
-  typeof window !== "undefined" &&
-  window.location.hostname.includes("test")
-
-if (isTestEnvironment) {
-  WEBHOOK_URL_ESQUECEU_SENHA = "https://n8n-n8n-start.z8qram.easypanel.host/webhook/d1b0eaf3-addf-4515-b91d-419a58bf0915"
-} else {
-  WEBHOOK_URL_ESQUECEU_SENHA = "https://n8n-n8n-start.z8qram.easypanel.host/webhook/d9c33448-d330-42bb-90e2-2298df6f2153"
-}
-
 export async function POST(request: NextRequest) {
   try {
+    const host = request.headers.get("host") || ""
+
+    const isTestEnvironment = host.includes("test")
+
+    const WEBHOOK_URL_ESQUECEU_SENHA = isTestEnvironment
+      ? "https://n8n-n8n-start.z8qram.easypanel.host/webhook/d1b0eaf3-addf-4515-b91d-419a58bf0915"
+      : "https://n8n-n8n-start.z8qram.easypanel.host/webhook/d9c33448-d330-42bb-90e2-2298df6f2153"
+
     const body = await request.json()
     const { cpf } = body
 
