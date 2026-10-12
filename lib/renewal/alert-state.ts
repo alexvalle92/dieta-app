@@ -29,11 +29,9 @@ export function alertView(d: {
   // No detalhe, faltando de 3 a 5 dias, só há o aviso.
   if (stage === "d5") return { kind: "d5" }
 
-  if (d.renewalStatus === "awaiting_payment") {
-    // No detalhe de um plano já vencido o alerta volta ao formulário.
-    if (d.variant === "detail" && stage === "expired") return { kind: "form", stage }
-    return { kind: "pay", stage, paymentUrl: d.paymentUrl }
-  }
+  // Quem já preencheu o formulário vê o link em qualquer estágio, na listagem e no detalhe (§8.3):
+  // depois do vencimento não há mais mensagem, então a tela do plano é o único lugar do link.
+  if (d.renewalStatus === "awaiting_payment") return { kind: "pay", stage, paymentUrl: d.paymentUrl }
 
   // O prazo de pagamento vencido só tem aviso próprio na listagem, com o plano vencido.
   if (d.renewalStatus === "payment_expired" && d.variant === "list" && stage === "expired") {

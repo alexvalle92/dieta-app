@@ -253,7 +253,7 @@ export function PlanExpirationAlert({
       );
     }
 
-    // stage === "expired" (só na listagem)
+    // stage === "expired" (listagem e detalhe; a margem segue a variante)
     return (
       <Alert variant="destructive" className={margin}>
         <AlertTriangle className="h-4 w-4" />

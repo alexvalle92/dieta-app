@@ -59,9 +59,11 @@ describe("alertView: detalhe", () => {
     }
   })
 
-  it("vencido volta ao formulário em todos os estados, menos pago", () => {
+  it("vencido volta ao formulário, salvo aguardando pagamento (link) e pago", () => {
     expect(view("detail", -1, "none")).toEqual({ kind: "form", stage: "expired" })
-    expect(view("detail", -1, "awaiting_payment")).toEqual({ kind: "form", stage: "expired" })
+    // §8.3: quem já preencheu o formulário vê o link também no detalhe do plano vencido.
+    expect(view("detail", -1, "awaiting_payment")).toEqual({ kind: "pay", stage: "expired", paymentUrl: PAY_URL })
+    expect(view("detail", -3, "awaiting_payment", null)).toEqual({ kind: "pay", stage: "expired", paymentUrl: null })
     expect(view("detail", -1, "payment_expired")).toEqual({ kind: "form", stage: "expired" })
     expect(view("detail", -1, "paid")).toEqual({ kind: "paid" })
   })

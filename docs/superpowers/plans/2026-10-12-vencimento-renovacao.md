@@ -613,7 +613,7 @@
   | `detail` | mais de 5 dias | nada | nada | nada | nada |
   | `detail` | `d5` | `d5` | `d5` | `d5` | `paid` |
   | `detail` | `d2`, `d0` | `form` | `pay` | `form` | `paid` |
-  | `detail` | vencido | `form` | `form` | `form` | `paid` |
+  | `detail` | vencido | `form` | `pay` | `form` | `paid` |
 
   `daysLeft` nulo → nada. Em `pay`, o `paymentUrl` recebido é repassado, inclusive `null`.
 
