@@ -26,3 +26,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# gerados pelo next-pwa no build
+/public/sw.js
+/public/workbox-*.js
+/public/fallback-*.js
