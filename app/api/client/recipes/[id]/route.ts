@@ -1,44 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/server/db'
-import { recipes } from '@/shared/schema'
-import { requireAuth } from '@/lib/auth'
-import { eq } from 'drizzle-orm'
+import { requirePatient } from '@/lib/auth/guards'
+import { getContainer } from '@/lib/container'
 
-export async function GET(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const c = getContainer()
   try {
-    const session = await requireAuth('patient')
-    
-    if (!session) {
-      return NextResponse.json(
-        { error: 'Acesso não autorizado' },
-        { status: 401 }
-      )
-    }
+    const guard = await requirePatient()
+    if (!guard.ok) return guard.response
 
-    const { id } = await context.params
-
-    const [recipe] = await db
-      .select()
-      .from(recipes)
-      .where(eq(recipes.id, id))
-      .limit(1)
-
+    const { id } = await params
+    const recipe = await c.repos.recipes.get(id)
     if (!recipe) {
-      return NextResponse.json(
-        { error: 'Receita não encontrada' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Receita não encontrada' }, { status: 404 })
     }
 
     return NextResponse.json({ recipe })
   } catch (error) {
-    console.error('Recipe fetch error:', error)
-    return NextResponse.json(
-      { error: 'Erro ao buscar receita' },
-      { status: 500 }
-    )
+    c.log.error('client.recipes.get_error', { message: error instanceof Error ? error.name : 'unknown' })
+    return NextResponse.json({ error: 'Erro ao buscar receita' }, { status: 500 })
   }
 }

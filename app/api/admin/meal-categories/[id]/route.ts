@@ -1,29 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/server/db'
-import { mealCategories } from '@/shared/schema'
-import { eq } from 'drizzle-orm'
-import { requireAuth } from '@/lib/auth'
+import { requireAdmin } from '@/lib/auth/guards'
+import { getContainer } from '@/lib/container'
 
-export async function DELETE(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
+export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const c = getContainer()
   try {
-    const session = await requireAuth('admin')
-    if (!session) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+    const guard = await requireAdmin()
+    if (!guard.ok) return guard.response
 
-    const params = await context.params
-    const id = params.id
+    const { id } = await params
+    if (!id) return NextResponse.json({ error: 'ID não fornecido' }, { status: 400 })
 
-    if (!id) {
-      return NextResponse.json({ error: 'ID não fornecido' }, { status: 400 })
-    }
-
-    await db.delete(mealCategories).where(eq(mealCategories.id, id))
-    
+    await c.repos.mealConfig.deleteCategory(id)
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Delete meal category error:', error)
+    c.log.error('admin.meal_categories.delete_error', { message: error instanceof Error ? error.name : 'unknown' })
     return NextResponse.json({ error: 'Erro ao excluir categoria de refeição' }, { status: 500 })
   }
 }

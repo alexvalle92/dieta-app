@@ -124,3 +124,67 @@ export interface StatsRepo {
   }>
   recipesCount(): Promise<number>
 }
+
+export type RecipeRow = {
+  id: string
+  title: string
+  description: string | null
+  ingredients: string[]
+  preparation: string
+  tips: string | null
+  prepTime: number | null
+  servings: number | null
+  calories: number | null
+  category: string | null
+  imageUrl: string | null
+  portionQuantity: number | null
+  proteins: number | null
+  lipids: number | null
+  carbohydrates: number | null
+  fiber: number | null
+  activeCustomer: boolean
+  createdAt: Date
+  updatedAt: Date
+}
+
+export type RecipeInput = Omit<RecipeRow, "id" | "createdAt" | "updatedAt">
+
+export interface RecipeRepo {
+  /** `created_at` decrescente. `onlyActive` filtra `active_customer`; `search` faz LIKE em título e categoria. */
+  list(opts: { onlyActive: boolean; search: string }): Promise<RecipeRow[]>
+  get(id: string): Promise<RecipeRow | null>
+  create(d: RecipeInput, now: Date): Promise<RecipeRow>
+  /** Só os campos recebidos mudam; `null` limpa um campo opcional. `null` se o id não existe. */
+  update(id: string, d: Partial<RecipeInput>, now: Date): Promise<RecipeRow | null>
+  delete(id: string): Promise<boolean>
+}
+
+export type MealCategoryRow = { id: string; name: string; createdAt: Date }
+
+export type AllowedItemRow = {
+  id: string
+  itemType: string
+  foodName: string | null
+  createdAt: Date
+  category: { id: string; name: string }
+  recipe: { id: string; title: string } | null
+}
+
+export interface MealConfigRepo {
+  /** Por nome. */
+  listCategories(): Promise<MealCategoryRow[]>
+  createCategory(name: string, now: Date): Promise<MealCategoryRow | "name_taken">
+  /** Apaga também os itens permitidos da categoria (cascata). */
+  deleteCategory(id: string): Promise<void>
+  /** `created_at` decrescente. */
+  listAllowedItems(): Promise<AllowedItemRow[]>
+  createAllowedItem(
+    d: { mealCategoryId: string; itemType: string; foodName: string | null; recipeId: string | null },
+    now: Date,
+  ): Promise<{ id: string }>
+  deleteAllowedItem(id: string): Promise<void>
+  /** "" quando ainda não há linha. */
+  getDietDefinition(): Promise<string>
+  /** Upsert da linha "global". */
+  setDietDefinition(text: string, now: Date): Promise<void>
+}
