@@ -5,7 +5,7 @@ import { AdminNav } from "@/components/admin-nav"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Mail, Phone, Edit, Plus, Search, Loader2 } from "lucide-react"
+import { Mail, Phone, Edit, Eye, Plus, Search, Loader2 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import Link from "next/link"
 import { DeletePatientButton } from "@/components/delete-patient-button"
@@ -172,6 +172,12 @@ export default function PacientesPage() {
                         </CardDescription>
                       </div>
                       <div className="flex gap-2">
+                        <Link href={`/admin/pacientes/${paciente.id}`}>
+                          <Button variant="outline" size="sm" className="gap-2 bg-transparent">
+                            <Eye className="h-4 w-4" />
+                            Ver cadastro
+                          </Button>
+                        </Link>
                         <Link href={`/admin/pacientes/${paciente.id}/editar`}>
                           <Button variant="outline" size="sm" className="gap-2 bg-transparent">
                             <Edit className="h-4 w-4" />

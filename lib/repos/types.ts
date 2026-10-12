@@ -188,3 +188,51 @@ export interface MealConfigRepo {
   /** Upsert da linha "global". */
   setDietDefinition(text: string, now: Date): Promise<void>
 }
+
+export type PatientRecord = {
+  patient: {
+    id: string
+    name: string
+    cpf: string
+    email: string
+    phone: string
+    createdAt: Date
+    hasPassword: boolean
+    mustChangePassword: boolean
+  }
+  quizResponses: { id: string; createdAt: Date; answers: Record<string, unknown> }[]
+  payments: {
+    id: string
+    amount: string
+    status: string
+    dueDate: string | null
+    paidAt: Date | null
+    billingType: string | null
+    paymentUrl: string | null
+    createdAt: Date
+  }[]
+  mealPlans: {
+    id: string
+    title: string
+    startDate: string
+    endDate: string | null
+    status: string
+    /** "ai" quando o plano nasceu de um pagamento; "admin" quando foi criado à mão. */
+    origin: "ai" | "admin"
+    createdAt: Date
+  }[]
+  notifications: {
+    id: string
+    channel: string
+    kind: string
+    status: string
+    attempts: number
+    sentAt: Date | null
+    createdAt: Date
+  }[]
+}
+
+/** Leitura do cadastro completo de um paciente (tela do admin). Todas as listas: mais novo primeiro. */
+export interface PatientRecordRepo {
+  get(patientId: string): Promise<PatientRecord | null>
+}

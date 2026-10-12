@@ -8,6 +8,7 @@ import { createLogger, type Logger } from "@/lib/log"
 import { createAdminRepo } from "@/lib/repos/admins"
 import { createMealConfigRepo } from "@/lib/repos/meal-config"
 import { createMealPlanRepo } from "@/lib/repos/meal-plans"
+import { createPatientRecordRepo } from "@/lib/repos/patient-record"
 import { createPatientRepo } from "@/lib/repos/patients"
 import { createRecipeRepo } from "@/lib/repos/recipes"
 import { createResetTokenRepo } from "@/lib/repos/reset-tokens"
@@ -17,6 +18,7 @@ import type {
   Channel,
   MealConfigRepo,
   MealPlanRepo,
+  PatientRecordRepo,
   PatientRepo,
   RecipeRepo,
   ResetTokenRepo,
@@ -50,6 +52,7 @@ export type Container = {
     stats: StatsRepo
     recipes: RecipeRepo
     mealConfig: MealConfigRepo
+    patientRecord: PatientRecordRepo
   }
   channels: Channel[]
   loginPatient: ReturnType<typeof createLoginPatient>
@@ -89,11 +92,12 @@ function buildContainer(): Container {
   const stats = createStatsRepo(db)
   const recipes = createRecipeRepo(db)
   const mealConfig = createMealConfigRepo(db)
+  const patientRecord = createPatientRecordRepo(db)
 
   return {
     env,
     log,
-    repos: { patients, admins, resetTokens, mealPlans, stats, recipes, mealConfig },
+    repos: { patients, admins, resetTokens, mealPlans, stats, recipes, mealConfig, patientRecord },
     channels,
     loginPatient: createLoginPatient({ patients, verifyPassword, dummyHash: DUMMY_HASH }),
     loginAdmin: createLoginAdmin({ admins, verifyPassword, dummyHash: DUMMY_HASH }),
