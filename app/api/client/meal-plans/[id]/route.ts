@@ -22,7 +22,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ error: 'Este plano alimentar não está mais ativo' }, { status: 403 })
     }
 
-    return NextResponse.json({ mealPlan })
+    const [decorated] = await c.renewal.decorate([mealPlan])
+    return NextResponse.json({ mealPlan: decorated })
   } catch (error) {
     c.log.error('client.meal_plans.get_error', { message: error instanceof Error ? error.name : 'unknown' })
     return NextResponse.json({ error: 'Erro ao buscar plano alimentar' }, { status: 500 })

@@ -1,7 +1,9 @@
 import { randomUUID } from "node:crypto"
 import type mysql from "mysql2/promise"
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest"
+import { eq } from "drizzle-orm"
 import type { Db } from "@/lib/db/client"
+import { notifications } from "@/lib/db/schema"
 import { createMealPlanRepo } from "@/lib/repos/meal-plans"
 import type { MealPlanInput, MealPlanRepo } from "@/lib/repos/types"
 import { seedGeneratedPlan, seedQuizPatient } from "../helpers/seed"
@@ -156,6 +158,42 @@ describe.skipIf(!mysqlTestsEnabled)("MealPlanRepo (MySQL)", () => {
 
     it("id inexistente → not_found", async () => {
       expect(await repo.delete(randomUUID())).toBe("not_found")
+    })
+
+    it("plano com aviso de vencimento ligado → deleted, e a notificação some", async () => {
+      const plan = await create()
+      await db.insert(notifications).values({
+        id: randomUUID(),
+        patientId,
+        mealPlanId: plan.id,
+        channel: "email",
+        kind: "plan_expiring_d5",
+        recipient: "ana@example.com",
+        status: "pending",
+        nextAttemptAt: T0,
+      })
+
+      expect(await repo.delete(plan.id)).toBe("deleted")
+      expect(await repo.get(plan.id)).toBeNull()
+      expect(await db.select({ id: notifications.id }).from(notifications).where(eq(notifications.mealPlanId, plan.id))).toEqual([])
+    })
+
+    it("plano em uso com aviso de vencimento → in_use, e a notificação continua", async () => {
+      const ids = await seedQuizPatient(db)
+      const { mealPlanId } = await seedGeneratedPlan(db, ids)
+      await db.insert(notifications).values({
+        id: randomUUID(),
+        patientId: ids.patientId,
+        mealPlanId,
+        channel: "email",
+        kind: "plan_expiring_d5",
+        recipient: "ana@example.com",
+        status: "pending",
+        nextAttemptAt: T0,
+      })
+
+      expect(await repo.delete(mealPlanId)).toBe("in_use")
+      expect(await db.select({ id: notifications.id }).from(notifications).where(eq(notifications.mealPlanId, mealPlanId))).toHaveLength(1)
     })
   })
 })

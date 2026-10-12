@@ -11,6 +11,7 @@ import { createMealPlanRepo } from "@/lib/repos/meal-plans"
 import { createPatientRecordRepo } from "@/lib/repos/patient-record"
 import { createPatientRepo } from "@/lib/repos/patients"
 import { createRecipeRepo } from "@/lib/repos/recipes"
+import { createRenewalRepo } from "@/lib/repos/renewals"
 import { createResetTokenRepo } from "@/lib/repos/reset-tokens"
 import { createStatsRepo } from "@/lib/repos/stats"
 import type {
@@ -21,6 +22,7 @@ import type {
   PatientRecordRepo,
   PatientRepo,
   RecipeRepo,
+  RenewalRepo,
   ResetTokenRepo,
   StatsRepo,
 } from "@/lib/repos/types"
@@ -29,6 +31,7 @@ import { createChangeAdminPassword, createChangePatientPassword } from "@/lib/se
 import { createLoginAdmin, createLoginPatient } from "@/lib/services/login"
 import { createRedeemPasswordReset, createRequestPasswordReset } from "@/lib/services/password-reset"
 import { createPatientAdmin, type PatientAdmin } from "@/lib/services/patient-admin"
+import { createRenewal, type Renewal } from "@/lib/services/renewal"
 import { createSeedAdmin } from "@/lib/services/seed-admin"
 
 /**
@@ -53,6 +56,7 @@ export type Container = {
     recipes: RecipeRepo
     mealConfig: MealConfigRepo
     patientRecord: PatientRecordRepo
+    renewals: RenewalRepo
   }
   channels: Channel[]
   loginPatient: ReturnType<typeof createLoginPatient>
@@ -63,6 +67,7 @@ export type Container = {
   redeemPasswordReset: ReturnType<typeof createRedeemPasswordReset>
   seedAdmin: ReturnType<typeof createSeedAdmin>
   patientAdmin: PatientAdmin
+  renewal: Renewal
   forms: ReturnType<typeof createFormsClient>
   loginLimiter: RateLimiter
   forgotLimiter: RateLimiter
@@ -93,11 +98,12 @@ function buildContainer(): Container {
   const recipes = createRecipeRepo(db)
   const mealConfig = createMealConfigRepo(db)
   const patientRecord = createPatientRecordRepo(db)
+  const renewals = createRenewalRepo(db)
 
   return {
     env,
     log,
-    repos: { patients, admins, resetTokens, mealPlans, stats, recipes, mealConfig, patientRecord },
+    repos: { patients, admins, resetTokens, mealPlans, stats, recipes, mealConfig, patientRecord, renewals },
     channels,
     loginPatient: createLoginPatient({ patients, verifyPassword, dummyHash: DUMMY_HASH }),
     loginAdmin: createLoginAdmin({ admins, verifyPassword, dummyHash: DUMMY_HASH }),
@@ -114,6 +120,7 @@ function buildContainer(): Container {
     redeemPasswordReset: createRedeemPasswordReset({ resetTokens, hashPassword, hashToken: hashResetToken, now }),
     seedAdmin: createSeedAdmin({ admins, hashPassword, log }),
     patientAdmin: createPatientAdmin({ patients, hashPassword }),
+    renewal: createRenewal({ renewals, now }),
     forms: createFormsClient({ baseUrl: env.FORMS_INTERNAL_URL, token: env.JOBS_TOKEN, log }),
     loginLimiter: createRateLimiter(LOGIN_RATE_LIMIT),
     forgotLimiter: createRateLimiter(FORGOT_RATE_LIMIT),

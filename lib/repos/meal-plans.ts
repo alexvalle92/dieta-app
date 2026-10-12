@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto"
 import { and, desc, eq, ne } from "drizzle-orm"
 import type { Db } from "@/lib/db/client"
-import { mealPlans, patients, planGenerations } from "@/lib/db/schema"
+import { mealPlans, notifications, patients, planGenerations } from "@/lib/db/schema"
 import type { MealPlanInput, MealPlanRepo, MealPlanRow, MealPlanWithPatient } from "./types"
 
 const planColumns = {
@@ -11,8 +11,6 @@ const planColumns = {
   description: mealPlans.description,
   startDate: mealPlans.startDate,
   endDate: mealPlans.endDate,
-  dueDateNewMealPlan: mealPlans.dueDateNewMealPlan,
-  paymentUrlNewMealPlan: mealPlans.paymentUrlNewMealPlan,
   status: mealPlans.status,
   planData: mealPlans.planData,
   createdAt: mealPlans.createdAt,
@@ -149,7 +147,11 @@ export function createMealPlanRepo(db: Db): MealPlanRepo {
         .limit(1)
       if (generation) return "in_use"
 
-      await db.delete(mealPlans).where(eq(mealPlans.id, id))
+      // Os avisos de vencimento do plano (FK `notifications.meal_plan_id`) saem junto com ele.
+      await db.transaction(async (tx) => {
+        await tx.delete(notifications).where(eq(notifications.mealPlanId, id))
+        await tx.delete(mealPlans).where(eq(mealPlans.id, id))
+      })
       return "deleted"
     },
   }

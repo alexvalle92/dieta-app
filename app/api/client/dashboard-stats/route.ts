@@ -11,10 +11,11 @@ export async function GET() {
     const guard = await requirePatient()
     if (!guard.ok) return guard.response
 
-    const [allPlans, recipesCount] = await Promise.all([
+    const [plans, recipesCount] = await Promise.all([
       c.repos.mealPlans.listByPatient(guard.session.userId),
       c.repos.stats.recipesCount(),
     ])
+    const allPlans = await c.renewal.decorate(plans)
 
     const activePlans = allPlans.filter((plan) => plan.status === 'active')
     const activePlan = activePlans.length > 0 ? activePlans[0] : null
@@ -39,6 +40,7 @@ export async function GET() {
             status: activePlan.status,
             startDate: activePlan.startDate,
             endDate: activePlan.endDate,
+            renewalStatus: activePlan.renewalStatus,
             dueDateNewMealPlan: activePlan.dueDateNewMealPlan,
             paymentUrlNewMealPlan: activePlan.paymentUrlNewMealPlan,
           }
@@ -46,6 +48,7 @@ export async function GET() {
       allPlans: allPlans.map((plan) => ({
         id: plan.id,
         endDate: plan.endDate,
+        renewalStatus: plan.renewalStatus,
         dueDateNewMealPlan: plan.dueDateNewMealPlan,
         paymentUrlNewMealPlan: plan.paymentUrlNewMealPlan,
         status: plan.status,

@@ -39,6 +39,9 @@ describe("rótulos", () => {
     expect(notificationKindLabel("payment_link")).toBe("Link de pagamento")
     expect(notificationKindLabel("plan_ready")).toBe("Plano pronto")
     expect(notificationKindLabel("password_reset")).toBe("Redefinição de senha")
+    expect(notificationKindLabel("plan_expiring_d5")).toBe("Aviso de vencimento (5 dias)")
+    expect(notificationKindLabel("plan_expiring_d2")).toBe("Aviso de vencimento (2 dias)")
+    expect(notificationKindLabel("plan_expiring_d0")).toBe("Aviso de vencimento (vence hoje)")
     expect(notificationKindLabel("algo_novo")).toBe("algo_novo")
   })
 

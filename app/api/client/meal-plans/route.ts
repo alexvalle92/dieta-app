@@ -11,7 +11,7 @@ export async function GET() {
     const guard = await requirePatient()
     if (!guard.ok) return guard.response
 
-    const mealPlans = await c.repos.mealPlans.listByPatient(guard.session.userId)
+    const mealPlans = await c.renewal.decorate(await c.repos.mealPlans.listByPatient(guard.session.userId))
     return NextResponse.json({ mealPlans })
   } catch (error) {
     c.log.error('client.meal_plans.list_error', { message: error instanceof Error ? error.name : 'unknown' })

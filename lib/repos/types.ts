@@ -1,6 +1,8 @@
 // Contratos dos repositórios do PlanA. Só `lib/repos/` importa o Drizzle e o schema; serviços e rotas
 // dependem destes tipos. Datas são `Date` (UTC); datas de calendário, `YYYY-MM-DD`.
 
+import type { RenewalCharge, RenewalStatus } from "@/lib/renewal/rules"
+
 export type Channel = "email" | "whatsapp"
 
 export type PatientRow = {
@@ -70,12 +72,17 @@ export type MealPlanRow = {
   description: string | null
   startDate: string
   endDate: string | null
-  dueDateNewMealPlan: string | null
-  paymentUrlNewMealPlan: string | null
   status: string
   planData: unknown
   createdAt: Date
   updatedAt: Date
+}
+
+/** Plano como o paciente o recebe: com o estado da renovação, que vem das cobranças (spec §4). */
+export type ClientMealPlan = MealPlanRow & {
+  renewalStatus: RenewalStatus
+  dueDateNewMealPlan: string | null
+  paymentUrlNewMealPlan: string | null
 }
 
 export type MealPlanWithPatient = MealPlanRow & {
@@ -110,8 +117,18 @@ export interface MealPlanRepo {
     d: Partial<MealPlanInput>,
     now: Date,
   ): Promise<MealPlanWithPatient | "not_found" | "patient_not_found">
-  /** `in_use`: há linha em `plan_generations` apontando para o plano. */
+  /**
+   * `in_use`: há linha em `plan_generations` apontando para o plano. Os avisos de vencimento
+   * (`notifications.meal_plan_id`) do plano são apagados junto, na mesma transação.
+   */
   delete(id: string): Promise<"deleted" | "not_found" | "in_use">
+}
+
+export interface RenewalRepo {
+  /** Cobrança mais recente do paciente com `created_at` maior que `after` (§4). */
+  latestChargeAfter(patientId: string, after: Date): Promise<RenewalCharge | null>
+  /** `answers` do envio mais recente do paciente em `quiz_responses`. */
+  latestAnswers(patientId: string): Promise<Record<string, unknown> | null>
 }
 
 export interface StatsRepo {

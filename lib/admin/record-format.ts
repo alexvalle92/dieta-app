@@ -22,6 +22,9 @@ const KIND_LABELS: Record<string, string> = {
   payment_link: "Link de pagamento",
   plan_ready: "Plano pronto",
   password_reset: "Redefinição de senha",
+  plan_expiring_d5: "Aviso de vencimento (5 dias)",
+  plan_expiring_d2: "Aviso de vencimento (2 dias)",
+  plan_expiring_d0: "Aviso de vencimento (vence hoje)",
 }
 
 const CHANNEL_LABELS: Record<string, string> = {
