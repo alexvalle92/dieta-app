@@ -1,76 +1,36 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/server/db'
-import { admins } from '@/shared/schema'
-import { eq } from 'drizzle-orm'
-import { createSession } from '@/lib/auth'
-import { compareSHA512 } from '@/lib/crypto-utils'
+import { NextRequest, NextResponse } from "next/server"
+import { createSession } from "@/lib/auth/session"
+import { getContainer } from "@/lib/container"
+import { clientIp } from "@/lib/http/client-ip"
+import { readInput } from "@/lib/http/read-input"
+
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+
+const text = (value: unknown) => typeof value === "string" && value !== ""
 
 export async function POST(request: NextRequest) {
+  const c = getContainer()
   try {
-    const body = await request.json()
-    const { email, password } = body
-
-    if (!email || !password) {
-      return NextResponse.json(
-        { error: 'E-mail e senha são obrigatórios' },
-        { status: 400 }
-      )
+    if (!c.loginLimiter.hit(clientIp(request))) {
+      return NextResponse.json({ error: "Muitas tentativas. Aguarde alguns minutos e tente novamente." }, { status: 429 })
     }
 
-    const [admin] = await db
-      .select({
-        id: admins.id,
-        name: admins.name,
-        email: admins.email,
-        password: admins.password,
-      })
-      .from(admins)
-      .where(eq(admins.email, email))
-      .limit(1)
-
-    if (!admin) {
-      return NextResponse.json(
-        { error: 'E-mail ou senha inválidos' },
-        { status: 401 }
-      )
+    const input = await readInput(request)
+    if (!text(input.email) || !text(input.password)) {
+      return NextResponse.json({ error: "E-mail e senha são obrigatórios" }, { status: 400 })
     }
 
-    if (!admin.password) {
-      return NextResponse.json(
-        { error: 'Senha não cadastrada. Entre em contato com o suporte.' },
-        { status: 401 }
-      )
+    const result = await c.loginAdmin(input)
+    if (!result.ok) {
+      return NextResponse.json({ error: "E-mail ou senha inválidos" }, { status: 401 })
     }
 
-    const passwordMatch = compareSHA512(password, admin.password)
-
-    if (!passwordMatch) {
-      return NextResponse.json(
-        { error: 'E-mail ou senha inválidos' },
-        { status: 401 }
-      )
-    }
-
-    await createSession({
-      userId: admin.id,
-      userType: 'admin',
-      email: admin.email,
-      name: admin.name,
-    })
-
-    return NextResponse.json({
-      success: true,
-      user: {
-        id: admin.id,
-        name: admin.name,
-        email: admin.email,
-      },
-    })
+    await createSession(result.session)
+    const { userId, name, email } = result.session
+    return NextResponse.json({ success: true, user: { id: userId, name, email } })
   } catch (error) {
-    console.error('Admin login error:', error)
-    return NextResponse.json(
-      { error: 'Erro ao processar login' },
-      { status: 500 }
-    )
+    c.log.error("auth.login_admin.error", { message: error instanceof Error ? error.name : "unknown" })
+    return NextResponse.json({ error: "Erro ao processar login" }, { status: 500 })
   }
 }

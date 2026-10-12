@@ -1,65 +1,43 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse, after } from "next/server"
+import { getContainer } from "@/lib/container"
+import { clientIp } from "@/lib/http/client-ip"
+import { readInput } from "@/lib/http/read-input"
 
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+
+/**
+ * Pedido de "esqueci a senha" (§7.1 do spec): grava o token e as mensagens e, depois da resposta,
+ * pede ao v0-tami-forms o envio imediato. Se esse pedido falhar, o job de 2 minutos de lá envia.
+ */
 export async function POST(request: NextRequest) {
+  const c = getContainer()
   try {
-    const host = request.headers.get("host") || ""
-
-    const isTestEnvironment = host.includes("test")
-
-    const WEBHOOK_URL_ESQUECEU_SENHA = isTestEnvironment
-      ? "https://n8n-n8n-start.z8qram.easypanel.host/webhook/d1b0eaf3-addf-4515-b91d-419a58bf0915"
-      : "https://n8n-n8n-start.z8qram.easypanel.host/webhook/d9c33448-d330-42bb-90e2-2298df6f2153"
-
-    const body = await request.json()
-    const { cpf } = body
-
-    if (!cpf) {
-      return NextResponse.json(
-        { error: 'CPF é obrigatório' },
-        { status: 400 }
-      )
+    if (!c.forgotLimiter.hit(clientIp(request))) {
+      return NextResponse.json({ error: "Muitas tentativas. Aguarde alguns minutos e tente novamente." }, { status: 429 })
     }
 
-    const cpfNumbers = cpf.replace(/\D/g, '')
+    const input = await readInput(request)
+    if (typeof input.cpf !== "string" || input.cpf === "") {
+      return NextResponse.json({ error: "CPF é obrigatório" }, { status: 400 })
+    }
 
-    const webhookResponse = await fetch(WEBHOOK_URL_ESQUECEU_SENHA, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ cpf: cpfNumbers }),
+    const result = await c.requestPasswordReset(input.cpf)
+    if (result.kind === "invalid_cpf") return NextResponse.json({ error: "CPF inválido" }, { status: 400 })
+    if (result.kind === "not_found") {
+      return NextResponse.json({ error: "CPF não encontrado no sistema" }, { status: 404 })
+    }
+
+    const { notificationIds } = result
+    after(async () => {
+      await c.forms.dispatchNotifications(notificationIds)
     })
-
-    if (!webhookResponse.ok) {
-      return NextResponse.json(
-        { error: 'Erro ao processar solicitação. Tente novamente mais tarde.' },
-        { status: 500 }
-      )
-    }
-
-    const data = await webhookResponse.json()
-
-    if (data.sucesso === false) {
-      return NextResponse.json(
-        { error: data.mensagemErro || 'CPF não encontrado no sistema' },
-        { status: 404 }
-      )
-    }
-
-    if (data.sucesso === true) {
-      return NextResponse.json({ 
-        success: true, 
-        email: data.email,
-      })
-    }
-
-    return NextResponse.json(
-      { error: 'Resposta inesperada do servidor. Tente novamente.' },
-      { status: 500 }
-    )
+    return NextResponse.json({ success: true, email: result.maskedEmail })
   } catch (error) {
-    console.error('Forgot password error:', error)
+    c.log.error("auth.forgot_password.error", { message: error instanceof Error ? error.name : "unknown" })
     return NextResponse.json(
-      { error: 'Erro ao processar solicitação de recuperação. Tente novamente mais tarde.' },
-      { status: 500 }
+      { error: "Erro ao processar solicitação de recuperação. Tente novamente mais tarde." },
+      { status: 500 },
     )
   }
 }

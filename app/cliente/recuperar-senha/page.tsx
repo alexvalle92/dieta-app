@@ -43,8 +43,8 @@ export default function RecuperarSenhaPage() {
       return
     }
 
-    if (newPassword.length < 6) {
-      toast.error("A nova senha deve ter pelo menos 6 caracteres")
+    if (newPassword.length < 8) {
+      toast.error("A nova senha deve ter pelo menos 8 caracteres")
       return
     }
 
@@ -114,7 +114,7 @@ export default function RecuperarSenhaPage() {
                 onChange={(e) => setNewPassword(e.target.value)}
                 required
                 disabled={isLoading}
-                minLength={6}
+                minLength={8}
               />
             </div>
             <div className="space-y-2">
@@ -127,7 +127,7 @@ export default function RecuperarSenhaPage() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
                 disabled={isLoading}
-                minLength={6}
+                minLength={8}
               />
             </div>
             <Button type="submit" className="w-full" size="lg" disabled={isLoading}>

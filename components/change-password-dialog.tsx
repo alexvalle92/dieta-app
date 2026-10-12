@@ -35,8 +35,8 @@ export function ChangePasswordDialog({ open, onOpenChange, userType }: ChangePas
       return
     }
 
-    if (formData.newPassword.length < 6) {
-      toast.error('A nova senha deve ter pelo menos 6 caracteres')
+    if (formData.newPassword.length < 8) {
+      toast.error('A nova senha deve ter pelo menos 8 caracteres')
       return
     }
 
@@ -139,7 +139,7 @@ export function ChangePasswordDialog({ open, onOpenChange, userType }: ChangePas
                   required
                   disabled={isLoading}
                   className="pr-10"
-                  minLength={6}
+                  minLength={8}
                 />
                 <Button
                   type="button"
@@ -157,7 +157,7 @@ export function ChangePasswordDialog({ open, onOpenChange, userType }: ChangePas
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
-                Mínimo de 6 caracteres
+                Mínimo de 8 caracteres
               </p>
             </div>
 
@@ -172,7 +172,7 @@ export function ChangePasswordDialog({ open, onOpenChange, userType }: ChangePas
                   required
                   disabled={isLoading}
                   className="pr-10"
-                  minLength={6}
+                  minLength={8}
                 />
                 <Button
                   type="button"

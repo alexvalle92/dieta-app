@@ -28,8 +28,8 @@ export default function RedefinirSenhaPage({ params }: { params: Promise<{ token
       return
     }
 
-    if (newPassword.length < 6) {
-      toast.error("A nova senha deve ter pelo menos 6 caracteres")
+    if (newPassword.length < 8) {
+      toast.error("A nova senha deve ter pelo menos 8 caracteres")
       return
     }
 
@@ -83,7 +83,7 @@ export default function RedefinirSenhaPage({ params }: { params: Promise<{ token
                   onChange={(e) => setNewPassword(e.target.value)}
                   required
                   disabled={isLoading}
-                  minLength={6}
+                  minLength={8}
                   className="pr-10"
                 />
                 <Button
@@ -102,7 +102,7 @@ export default function RedefinirSenhaPage({ params }: { params: Promise<{ token
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
-                Mínimo de 6 caracteres
+                Mínimo de 8 caracteres
               </p>
             </div>
 
@@ -117,7 +117,7 @@ export default function RedefinirSenhaPage({ params }: { params: Promise<{ token
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
                   disabled={isLoading}
-                  minLength={6}
+                  minLength={8}
                   className="pr-10"
                 />
                 <Button

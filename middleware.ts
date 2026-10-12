@@ -1,70 +1,40 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
-import { jwtVerify } from 'jose'
+import { NextResponse } from "next/server"
+import type { NextRequest } from "next/server"
+import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth/session-token"
 
-function getSecretKey(): Uint8Array {
-  const secret = "CkA9c3Q0Dk7zZMy8rCxG93yf3yWJ3ZP3gd9afgq2z0A="
-  
-  if (!secret) {
-    throw new Error('JWT_SECRET environment variable is required')
-  }
-  
-  return new TextEncoder().encode(secret)
-}
+// Importa só `session-token` (jose): este arquivo roda no runtime edge, sem Node nem MySQL.
+const PUBLIC_CLIENT_PREFIXES = ["/cliente/login", "/cliente/esqueci-senha", "/cliente/redefinir-senha"]
+const CHANGE_PASSWORD_PATH = "/cliente/recuperar-senha"
 
-async function getSessionFromRequest(request: NextRequest) {
-  try {
-    const sessionCookie = request.cookies.get('nutriplan_session')
-    
-    if (!sessionCookie) {
-      return null
-    }
-    
-    const verified = await jwtVerify(sessionCookie.value, getSecretKey())
-    const payload = verified.payload
-    
-    if (!payload.userId || !payload.userType) {
-      return null
-    }
-    
-    return {
-      userId: payload.userId as string,
-      userType: payload.userType as 'patient' | 'admin',
-    }
-  } catch {
-    return null
-  }
-}
+const redirect = (request: NextRequest, path: string) => NextResponse.redirect(new URL(path, request.url))
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  if (pathname.startsWith('/api/')) {
-    return NextResponse.next()
-  }
+  if (pathname.startsWith("/api/")) return NextResponse.next()
 
-  if (pathname.startsWith('/cliente') && 
-      !pathname.startsWith('/cliente/login') && 
-      !pathname.startsWith('/cliente/esqueci-senha') && 
-      !pathname.startsWith('/cliente/redefinir-senha')) {
-    const session = await getSessionFromRequest(request)
-    
-    if (!session || session.userType !== 'patient') {
-      return NextResponse.redirect(new URL('/cliente/login', request.url))
-    }
-  }
+  const isClientPage = pathname.startsWith("/cliente") && !PUBLIC_CLIENT_PREFIXES.some((p) => pathname.startsWith(p))
+  const isAdminPage = pathname.startsWith("/admin") && !pathname.startsWith("/admin/login")
+  if (!isClientPage && !isAdminPage) return NextResponse.next()
 
-  if (pathname.startsWith('/admin') && !pathname.startsWith('/admin/login')) {
-    const session = await getSessionFromRequest(request)
-    
-    if (!session || session.userType !== 'admin') {
-      return NextResponse.redirect(new URL('/admin/login', request.url))
+  const session = await verifySessionToken(
+    request.cookies.get(SESSION_COOKIE)?.value,
+    process.env.SESSION_SECRET ?? "",
+  )
+
+  if (isClientPage) {
+    if (!session || session.userType !== "patient") return redirect(request, "/cliente/login")
+    // Senha temporária ainda não trocada: só a tela de troca está liberada (§6.5 do spec).
+    if (session.mustChangePassword && !pathname.startsWith(CHANGE_PASSWORD_PATH)) {
+      return redirect(request, CHANGE_PASSWORD_PATH)
     }
+  } else if (!session || session.userType !== "admin") {
+    return redirect(request, "/admin/login")
   }
 
   return NextResponse.next()
 }
 
 export const config = {
-  matcher: ['/cliente/:path*', '/admin/:path*'],
+  matcher: ["/cliente/:path*", "/admin/:path*"],
 }

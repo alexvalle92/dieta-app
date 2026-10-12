@@ -1,75 +1,35 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/server/db'
-import { patients, passwordResetTokens } from '@/shared/schema'
-import { eq, and } from 'drizzle-orm'
-import { hashSHA512 } from '@/lib/crypto-utils'
+import { NextRequest, NextResponse } from "next/server"
+import { getContainer } from "@/lib/container"
+import { readInput } from "@/lib/http/read-input"
+import { PASSWORD_LENGTH_MESSAGE } from "@/lib/validation/password"
 
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+
+const text = (value: unknown) => typeof value === "string" && value !== ""
+
+/** Redefine a senha com o token do link enviado por e-mail/WhatsApp (§7.2 do spec). */
 export async function POST(request: NextRequest) {
+  const c = getContainer()
   try {
-    const body = await request.json()
-    const { token, newPassword } = body
-
-    if (!token || !newPassword) {
-      return NextResponse.json(
-        { error: 'Token e nova senha são obrigatórios' },
-        { status: 400 }
-      )
+    const input = await readInput(request)
+    if (!text(input.token) || !text(input.newPassword)) {
+      return NextResponse.json({ error: "Token e nova senha são obrigatórios" }, { status: 400 })
     }
 
-    if (newPassword.length < 6) {
-      return NextResponse.json(
-        { error: 'A nova senha deve ter pelo menos 6 caracteres' },
-        { status: 400 }
-      )
+    const result = await c.redeemPasswordReset(input)
+    switch (result) {
+      case "invalid_new":
+        return NextResponse.json({ error: PASSWORD_LENGTH_MESSAGE }, { status: 400 })
+      case "invalid":
+        return NextResponse.json({ error: "Token inválido ou já utilizado" }, { status: 400 })
+      case "expired":
+        return NextResponse.json({ error: "Token expirado. Solicite um novo link de recuperação" }, { status: 400 })
     }
 
-    const [resetToken] = await db
-      .select()
-      .from(passwordResetTokens)
-      .where(and(
-        eq(passwordResetTokens.token, token),
-        eq(passwordResetTokens.used, false)
-      ))
-      .limit(1)
-
-    if (!resetToken) {
-      return NextResponse.json(
-        { error: 'Token inválido ou já utilizado' },
-        { status: 400 }
-      )
-    }
-
-    const now = new Date()
-    const expiresAt = new Date(resetToken.expiresAt)
-
-    if (now > expiresAt) {
-      return NextResponse.json(
-        { error: 'Token expirado. Solicite um novo link de recuperação' },
-        { status: 400 }
-      )
-    }
-
-    const hashedPassword = hashSHA512(newPassword)
-
-    await db
-      .update(patients)
-      .set({ password: hashedPassword })
-      .where(eq(patients.id, resetToken.patientId))
-
-    await db
-      .update(passwordResetTokens)
-      .set({ used: true })
-      .where(eq(passwordResetTokens.id, resetToken.id))
-
-    return NextResponse.json({ 
-      success: true, 
-      message: 'Senha redefinida com sucesso!' 
-    })
+    return NextResponse.json({ success: true, message: "Senha redefinida com sucesso!" })
   } catch (error) {
-    console.error('Verify reset token error:', error)
-    return NextResponse.json(
-      { error: 'Erro ao redefinir senha' },
-      { status: 500 }
-    )
+    c.log.error("auth.verify_reset_token.error", { message: error instanceof Error ? error.name : "unknown" })
+    return NextResponse.json({ error: "Erro ao redefinir senha" }, { status: 500 })
   }
 }
