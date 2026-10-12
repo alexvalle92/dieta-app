@@ -1,67 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/server/db'
-import { patients } from '@/shared/schema'
-import { eq } from 'drizzle-orm'
-import { requireAuth } from '@/lib/auth'
-import { hashSHA512 } from '@/lib/crypto-utils'
+import { requireAdmin } from '@/lib/auth/guards'
+import { getContainer } from '@/lib/container'
+import { readInput } from '@/lib/http/read-input'
+import { PASSWORD_LENGTH_MESSAGE } from '@/lib/validation/password'
 
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
+/** Redefine a senha de um paciente; o paciente precisa trocá-la no próximo acesso. */
 export async function POST(request: NextRequest) {
+  const c = getContainer()
   try {
-    const session = await requireAuth('admin')
-    
-    if (!session) {
-      return NextResponse.json(
-        { error: 'Acesso não autorizado' },
-        { status: 401 }
-      )
+    const guard = await requireAdmin()
+    if (!guard.ok) return guard.response
+
+    const { patientId, newPassword } = await readInput(request)
+    if (typeof patientId !== 'string' || patientId === '' || typeof newPassword !== 'string' || newPassword === '') {
+      return NextResponse.json({ error: 'ID do paciente e nova senha são obrigatórios' }, { status: 400 })
     }
 
-    const body = await request.json()
-    const { patientId, newPassword } = body
-
-    if (!patientId || !newPassword) {
-      return NextResponse.json(
-        { error: 'ID do paciente e nova senha são obrigatórios' },
-        { status: 400 }
-      )
+    const result = await c.patientAdmin.resetPassword(patientId, newPassword)
+    if (result === 'invalid_password') {
+      return NextResponse.json({ error: PASSWORD_LENGTH_MESSAGE }, { status: 400 })
+    }
+    if (result === 'not_found') {
+      return NextResponse.json({ error: 'Paciente não encontrado' }, { status: 404 })
     }
 
-    if (newPassword.length < 6) {
-      return NextResponse.json(
-        { error: 'A nova senha deve ter pelo menos 6 caracteres' },
-        { status: 400 }
-      )
-    }
-
-    const [patient] = await db
-      .select({ id: patients.id, name: patients.name })
-      .from(patients)
-      .where(eq(patients.id, patientId))
-      .limit(1)
-
-    if (!patient) {
-      return NextResponse.json(
-        { error: 'Paciente não encontrado' },
-        { status: 404 }
-      )
-    }
-
-    const hashedPassword = hashSHA512(newPassword)
-
-    await db
-      .update(patients)
-      .set({ password: hashedPassword })
-      .where(eq(patients.id, patientId))
-
+    const patient = await c.repos.patients.getById(patientId)
     return NextResponse.json({
       success: true,
-      message: `Senha do paciente ${patient.name} redefinida com sucesso`,
+      message: patient
+        ? `Senha do paciente ${patient.name} redefinida com sucesso`
+        : 'Senha do paciente redefinida com sucesso',
     })
   } catch (error) {
-    console.error('Admin password reset error:', error)
-    return NextResponse.json(
-      { error: 'Erro ao redefinir senha' },
-      { status: 500 }
-    )
+    c.log.error('admin.reset_patient_password.error', { message: error instanceof Error ? error.name : 'unknown' })
+    return NextResponse.json({ error: 'Erro ao redefinir senha' }, { status: 500 })
   }
 }

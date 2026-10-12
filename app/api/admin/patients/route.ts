@@ -1,137 +1,58 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSession } from '@/lib/auth'
-import { db } from '@/server/db'
-import { patients } from '@/shared/schema'
-import { eq, or, ilike, desc } from 'drizzle-orm'
-import { hashSHA512 } from '@/lib/crypto-utils'
+import { requireAdmin } from '@/lib/auth/guards'
+import { getContainer } from '@/lib/container'
+import { readInput } from '@/lib/http/read-input'
+import { publicPatient } from '@/lib/http/public-patient'
+import { MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH } from '@/lib/validation/password'
+
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
+  const c = getContainer()
   try {
-    const session = await getSession()
-    
-    if (!session || session.userType !== 'admin') {
-      return NextResponse.json(
-        { error: 'Acesso não autorizado' },
-        { status: 403 }
-      )
-    }
+    const guard = await requireAdmin()
+    if (!guard.ok) return guard.response
 
-    const { searchParams } = new URL(request.url)
-    const search = searchParams.get('search') || ''
-
-    let patientsList;
-    
-    if (search) {
-      patientsList = await db
-        .select({
-          id: patients.id,
-          name: patients.name,
-          email: patients.email,
-          cpf: patients.cpf,
-          phone: patients.phone,
-          createdAt: patients.createdAt,
-        })
-        .from(patients)
-        .where(
-          or(
-            ilike(patients.name, `%${search}%`),
-            ilike(patients.email, `%${search}%`),
-            ilike(patients.cpf, `%${search}%`)
-          )
-        )
-        .orderBy(desc(patients.createdAt))
-    } else {
-      patientsList = await db
-        .select({
-          id: patients.id,
-          name: patients.name,
-          email: patients.email,
-          cpf: patients.cpf,
-          phone: patients.phone,
-          createdAt: patients.createdAt,
-        })
-        .from(patients)
-        .orderBy(desc(patients.createdAt))
-    }
-
-    return NextResponse.json({ patients: patientsList })
+    const search = new URL(request.url).searchParams.get('search') || ''
+    const patients = await c.repos.patients.list(search)
+    return NextResponse.json({ patients: patients.map(publicPatient) })
   } catch (error) {
-    console.error('Error in GET /api/admin/patients:', error)
-    return NextResponse.json(
-      { error: 'Erro ao processar requisição' },
-      { status: 500 }
-    )
+    c.log.error('admin.patients.list_error', { message: error instanceof Error ? error.name : 'unknown' })
+    return NextResponse.json({ error: 'Erro ao processar requisição' }, { status: 500 })
   }
 }
 
 export async function POST(request: NextRequest) {
+  const c = getContainer()
   try {
-    const session = await getSession()
-    
-    if (!session || session.userType !== 'admin') {
-      return NextResponse.json(
-        { error: 'Acesso não autorizado' },
-        { status: 403 }
-      )
+    const guard = await requireAdmin()
+    if (!guard.ok) return guard.response
+
+    const result = await c.patientAdmin.create(await readInput(request))
+    if (!result.ok) {
+      switch (result.reason) {
+        case 'missing_fields':
+          return NextResponse.json({ error: 'Nome, email, CPF e senha são obrigatórios' }, { status: 400 })
+        case 'invalid_name':
+          return NextResponse.json({ error: 'O nome deve ter até 200 caracteres' }, { status: 400 })
+        case 'invalid_cpf':
+          return NextResponse.json({ error: 'CPF inválido' }, { status: 400 })
+        case 'invalid_email':
+          return NextResponse.json({ error: 'E-mail inválido' }, { status: 400 })
+        case 'invalid_password':
+          return NextResponse.json(
+            { error: `A senha deve ter entre ${MIN_PASSWORD_LENGTH} e ${MAX_PASSWORD_LENGTH} caracteres` },
+            { status: 400 },
+          )
+        case 'cpf_taken':
+          return NextResponse.json({ error: 'CPF já cadastrado' }, { status: 409 })
+      }
     }
 
-    const body = await request.json()
-    const { name, email, cpf, phone, password } = body
-
-    if (!name || !email || !cpf || !password) {
-      return NextResponse.json(
-        { error: 'Nome, email, CPF e senha são obrigatórios' },
-        { status: 400 }
-      )
-    }
-
-    const cpfNumbers = cpf.replace(/\D/g, '')
-
-    const existingPatient = await db
-      .select({ id: patients.id })
-      .from(patients)
-      .where(or(eq(patients.cpf, cpfNumbers), eq(patients.email, email)))
-      .limit(1)
-
-    if (existingPatient.length > 0) {
-      return NextResponse.json(
-        { error: 'CPF ou email já cadastrado' },
-        { status: 409 }
-      )
-    }
-
-    const hashedPassword = hashSHA512(password)
-
-    const [newPatient] = await db
-      .insert(patients)
-      .values({
-        name,
-        email,
-        cpf: cpfNumbers,
-        phone: phone?.replace(/\D/g, '') || '',
-        password: hashedPassword,
-      })
-      .returning({
-        id: patients.id,
-        name: patients.name,
-        email: patients.email,
-        cpf: patients.cpf,
-        phone: patients.phone,
-        createdAt: patients.createdAt,
-      })
-
-    return NextResponse.json(
-      { 
-        success: true,
-        patient: newPatient 
-      },
-      { status: 201 }
-    )
+    return NextResponse.json({ success: true, patient: publicPatient(result.patient) }, { status: 201 })
   } catch (error) {
-    console.error('Error in POST /api/admin/patients:', error)
-    return NextResponse.json(
-      { error: 'Erro ao processar requisição' },
-      { status: 500 }
-    )
+    c.log.error('admin.patients.create_error', { message: error instanceof Error ? error.name : 'unknown' })
+    return NextResponse.json({ error: 'Erro ao processar requisição' }, { status: 500 })
   }
 }

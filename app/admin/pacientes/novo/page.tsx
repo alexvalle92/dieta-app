@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
-import { getSession } from "@/lib/auth"
+import { getSession } from "@/lib/auth/session"
 import { redirect } from "next/navigation"
 import { PatientForm } from "@/components/patient-form"
 

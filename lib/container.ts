@@ -13,6 +13,7 @@ import { newResetToken, hashResetToken } from "@/lib/auth/reset-token"
 import { createChangeAdminPassword, createChangePatientPassword } from "@/lib/services/change-password"
 import { createLoginAdmin, createLoginPatient } from "@/lib/services/login"
 import { createRedeemPasswordReset, createRequestPasswordReset } from "@/lib/services/password-reset"
+import { createPatientAdmin, type PatientAdmin } from "@/lib/services/patient-admin"
 import { createSeedAdmin } from "@/lib/services/seed-admin"
 
 /**
@@ -41,6 +42,7 @@ export type Container = {
   requestPasswordReset: ReturnType<typeof createRequestPasswordReset>
   redeemPasswordReset: ReturnType<typeof createRedeemPasswordReset>
   seedAdmin: ReturnType<typeof createSeedAdmin>
+  patientAdmin: PatientAdmin
   forms: ReturnType<typeof createFormsClient>
   loginLimiter: RateLimiter
   forgotLimiter: RateLimiter
@@ -86,6 +88,7 @@ function buildContainer(): Container {
     }),
     redeemPasswordReset: createRedeemPasswordReset({ resetTokens, hashPassword, hashToken: hashResetToken, now }),
     seedAdmin: createSeedAdmin({ admins, hashPassword, log }),
+    patientAdmin: createPatientAdmin({ patients, hashPassword }),
     forms: createFormsClient({ baseUrl: env.FORMS_INTERNAL_URL, token: env.JOBS_TOKEN, log }),
     loginLimiter: createRateLimiter(LOGIN_RATE_LIMIT),
     forgotLimiter: createRateLimiter(FORGOT_RATE_LIMIT),

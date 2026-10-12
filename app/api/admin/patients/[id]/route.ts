@@ -1,143 +1,77 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSession } from '@/lib/auth'
-import { db } from '@/server/db'
-import { patients } from '@/shared/schema'
-import { eq } from 'drizzle-orm'
+import { requireAdmin } from '@/lib/auth/guards'
+import { getContainer } from '@/lib/container'
+import { readInput } from '@/lib/http/read-input'
+import { publicPatient } from '@/lib/http/public-patient'
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
+type Params = { params: Promise<{ id: string }> }
+
+const notFound = () => NextResponse.json({ error: 'Paciente não encontrado' }, { status: 404 })
+
+export async function GET(_request: NextRequest, { params }: Params) {
+  const c = getContainer()
   try {
-    const session = await getSession()
-    
-    if (!session || session.userType !== 'admin') {
-      return NextResponse.json(
-        { error: 'Acesso não autorizado' },
-        { status: 403 }
-      )
-    }
+    const guard = await requireAdmin()
+    if (!guard.ok) return guard.response
 
     const { id } = await params
+    const patient = await c.repos.patients.getById(id)
+    if (!patient) return notFound()
 
-    const [patient] = await db
-      .select({
-        id: patients.id,
-        name: patients.name,
-        email: patients.email,
-        cpf: patients.cpf,
-        phone: patients.phone,
-        createdAt: patients.createdAt,
-      })
-      .from(patients)
-      .where(eq(patients.id, id))
-      .limit(1)
-
-    if (!patient) {
-      return NextResponse.json(
-        { error: 'Paciente não encontrado' },
-        { status: 404 }
-      )
-    }
-
-    return NextResponse.json({ patient })
+    return NextResponse.json({ patient: publicPatient(patient) })
   } catch (error) {
-    console.error('Error in GET /api/admin/patients/[id]:', error)
-    return NextResponse.json(
-      { error: 'Erro ao processar requisição' },
-      { status: 500 }
-    )
+    c.log.error('admin.patients.get_error', { message: error instanceof Error ? error.name : 'unknown' })
+    return NextResponse.json({ error: 'Erro ao processar requisição' }, { status: 500 })
   }
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(request: NextRequest, { params }: Params) {
+  const c = getContainer()
   try {
-    const session = await getSession()
-    
-    if (!session || session.userType !== 'admin') {
-      return NextResponse.json(
-        { error: 'Acesso não autorizado' },
-        { status: 403 }
-      )
-    }
+    const guard = await requireAdmin()
+    if (!guard.ok) return guard.response
 
     const { id } = await params
-    const body = await request.json()
-    const { name, email, phone } = body
+    const result = await c.patientAdmin.update(id, await readInput(request))
 
-    if (!name || !email) {
-      return NextResponse.json(
-        { error: 'Nome e email são obrigatórios' },
-        { status: 400 }
-      )
+    if (result === 'not_found') return notFound()
+    if (result === 'missing_fields') {
+      return NextResponse.json({ error: 'Nome e email são obrigatórios' }, { status: 400 })
+    }
+    if (result === 'invalid_name') {
+      return NextResponse.json({ error: 'O nome deve ter até 200 caracteres' }, { status: 400 })
+    }
+    if (result === 'invalid_email') {
+      return NextResponse.json({ error: 'E-mail inválido' }, { status: 400 })
     }
 
-    const [updatedPatient] = await db
-      .update(patients)
-      .set({
-        name,
-        email,
-        phone: phone?.replace(/\D/g, '') || '',
-      })
-      .where(eq(patients.id, id))
-      .returning({
-        id: patients.id,
-        name: patients.name,
-        email: patients.email,
-        cpf: patients.cpf,
-        phone: patients.phone,
-        createdAt: patients.createdAt,
-      })
-
-    if (!updatedPatient) {
-      return NextResponse.json(
-        { error: 'Paciente não encontrado' },
-        { status: 404 }
-      )
-    }
-
-    return NextResponse.json({
-      success: true,
-      patient: updatedPatient
-    })
+    return NextResponse.json({ success: true, patient: publicPatient(result) })
   } catch (error) {
-    console.error('Error in PUT /api/admin/patients/[id]:', error)
-    return NextResponse.json(
-      { error: 'Erro ao processar requisição' },
-      { status: 500 }
-    )
+    c.log.error('admin.patients.update_error', { message: error instanceof Error ? error.name : 'unknown' })
+    return NextResponse.json({ error: 'Erro ao processar requisição' }, { status: 500 })
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(_request: NextRequest, { params }: Params) {
+  const c = getContainer()
   try {
-    const session = await getSession()
-    
-    if (!session || session.userType !== 'admin') {
-      return NextResponse.json(
-        { error: 'Acesso não autorizado' },
-        { status: 403 }
-      )
-    }
+    const guard = await requireAdmin()
+    if (!guard.ok) return guard.response
 
     const { id } = await params
+    const result = await c.patientAdmin.remove(id)
 
-    await db
-      .delete(patients)
-      .where(eq(patients.id, id))
+    if (result === 'not_found') return notFound()
+    if (result === 'has_history') {
+      return NextResponse.json({ error: 'Paciente com pagamentos não pode ser excluído' }, { status: 409 })
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Error in DELETE /api/admin/patients/[id]:', error)
-    return NextResponse.json(
-      { error: 'Erro ao processar requisição' },
-      { status: 500 }
-    )
+    c.log.error('admin.patients.delete_error', { message: error instanceof Error ? error.name : 'unknown' })
+    return NextResponse.json({ error: 'Erro ao processar requisição' }, { status: 500 })
   }
 }

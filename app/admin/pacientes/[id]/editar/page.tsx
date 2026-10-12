@@ -5,33 +5,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
-import { getSession } from "@/lib/auth"
+import { getSession } from "@/lib/auth/session"
+import { getContainer } from "@/lib/container"
 import { redirect } from "next/navigation"
-import { db } from "@/server/db"
-import { patients } from "@/shared/schema"
-import { eq } from "drizzle-orm"
 import { PatientForm } from "@/components/patient-form"
 
 export default async function EditarPacientePage({ params }: { params: Promise<{ id: string }> }) {
   const session = await getSession()
-  
+
   if (!session || session.userType !== 'admin') {
     redirect('/admin/login')
   }
 
   const { id } = await params
 
-  const [patient] = await db
-    .select({
-      id: patients.id,
-      name: patients.name,
-      email: patients.email,
-      cpf: patients.cpf,
-      phone: patients.phone,
-    })
-    .from(patients)
-    .where(eq(patients.id, id))
-    .limit(1)
+  const patient = await getContainer().repos.patients.getById(id)
 
   if (!patient) {
     redirect('/admin/pacientes')
@@ -56,7 +44,16 @@ export default async function EditarPacientePage({ params }: { params: Promise<{
             <CardDescription>Atualize os dados do paciente</CardDescription>
           </CardHeader>
           <CardContent>
-            <PatientForm mode="edit" patient={patient} />
+            <PatientForm
+              mode="edit"
+              patient={{
+                id: patient.id,
+                name: patient.name,
+                email: patient.email,
+                cpf: patient.cpf,
+                phone: patient.phone,
+              }}
+            />
           </CardContent>
         </Card>
       </main>

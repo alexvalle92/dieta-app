@@ -2,28 +2,23 @@ export const dynamic = 'force-dynamic'
 
 import { ClientNav } from "@/components/client-nav"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { getSession } from "@/lib/auth"
+import { getSession } from "@/lib/auth/session"
+import { getContainer } from "@/lib/container"
 import { redirect } from "next/navigation"
-import { db } from "@/server/db"
-import { patients } from "@/shared/schema"
-import { eq } from "drizzle-orm"
 import { Mail, Phone, Calendar, User, Hash } from "lucide-react"
 
 export default async function MeusDadosPage() {
   const session = await getSession()
   
-  if (!session) {
+  if (!session || session.userType !== 'patient') {
     redirect('/cliente/login')
   }
 
-  const [patient] = await db
-    .select()
-    .from(patients)
-    .where(eq(patients.id, session.userId))
-    .limit(1)
+  const patient = await getContainer().repos.patients.getById(session.userId)
 
+  // Paciente excluído pelo admin com a sessão ainda válida: volta ao login.
   if (!patient) {
-    redirect('/cliente/dashboard')
+    redirect('/cliente/login')
   }
 
   const formatCPF = (cpf: string) => {

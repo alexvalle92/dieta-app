@@ -164,10 +164,10 @@ export function PatientForm({ patient, mode }: PatientFormProps) {
             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
             required
             disabled={isLoading}
-            minLength={6}
+            minLength={8}
           />
           <p className="text-xs text-muted-foreground">
-            O paciente poderá alterar a senha após o primeiro acesso. Mínimo de 6 caracteres.
+            O paciente poderá alterar a senha após o primeiro acesso. Mínimo de 8 caracteres.
           </p>
         </div>
       )}
