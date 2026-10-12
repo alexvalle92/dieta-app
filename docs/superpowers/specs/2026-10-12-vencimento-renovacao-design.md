@@ -139,6 +139,7 @@ Consequências dessa regra:
 - No primeiro deploy, todo plano ativo que já está dentro de um estágio recebe o aviso desse estágio.
 - Se o admin alterar o `end_date` de um plano, os estágios já avisados não se repetem.
 - Plano criado à mão pelo admin também recebe os avisos.
+- Paciente sem telefone (o admin pode cadastrar assim) recebe só o e-mail: nenhuma linha de WhatsApp é criada para ele.
 
 ### 6.2 Texto
 
@@ -211,6 +212,7 @@ Assim que o pagamento for confirmado, seu novo plano aparece no PlanA. É só en
 - Corpo: o mesmo de `/api/submit-quiz`, `{ submissionId, answers }`, com `nome_completo`, `email`, `whatsapp` e `cpf` dentro de `answers`. Limite de 64 KB. Fora do formato → `400`.
 - Usa a mesma validação (`parseSubmitRequest`) e o mesmo serviço (`submitQuiz`) do quiz. Valem, portanto, as regras de hoje: idempotência por `submissionId`, reaproveitamento da cobrança pendente, criação da cobrança no Asaas dentro do pedido (até 20 s) e mensagem de link de pagamento por e-mail e WhatsApp.
 - Não tem limite por IP: quem chama é o PlanA.
+- Diferente do quiz, aceita `whatsapp` vazio: o paciente cadastrado pelo admin sem telefone renova normalmente e recebe o link de pagamento só por e-mail. A cobrança no Asaas é criada sem telefone.
 - Respostas: `200 { ok: true, paymentUrl }`, com `paymentUrl` nulo quando os dados foram gravados mas o link ainda não saiu (o job conclui); `500 { ok: false }` quando nada foi gravado.
 - Depois da resposta, envia as notificações do envio, como o quiz faz.
 
@@ -350,7 +352,7 @@ Valem as regras de fronteira dos specs anteriores: rota sem regra de negócio, s
   - permissão: plano de outro paciente; plano não ativo; formulário fechado; estado `paid`;
   - envio: monta o corpo com os dados do paciente e o IMC; devolve o link; link nulo; falha do `v0-tami-forms` vira erro;
   - respostas para preencher a tela: último envio; sem envio; peso e meta sempre vazios; opção antiga descartada.
-- **Rotas:** sem sessão → 401; limite → 429; não permitido → 409 com o código; inválido → 400.
+- **Rotas:** sem teste próprio, como as demais do PlanA. A guarda, o limite por paciente, a validação e o serviço são testados separadamente.
 - **Cliente do `v0-tami-forms`:** sucesso, erro HTTP e tempo esgotado.
 - **Repositórios contra o MySQL:** cobrança de renovação (ignora a cobrança anterior ao plano, pega a mais recente); último envio; exclusão de plano com aviso ligado.
 - **Middleware:** redireciona com `next`.
