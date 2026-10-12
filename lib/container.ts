@@ -2,7 +2,7 @@ import { sql } from "drizzle-orm"
 import { hashPassword, verifyPassword } from "@/lib/auth/password-hash"
 import { getDb } from "@/lib/db/client"
 import { getEnv, type Env } from "@/lib/env"
-import { createFormsClient } from "@/lib/forms-client"
+import { createFormsClient, type FormsClient } from "@/lib/forms-client"
 import { createRateLimiter, type RateLimiter } from "@/lib/http/rate-limit"
 import { createLogger, type Logger } from "@/lib/log"
 import { createAdminRepo } from "@/lib/repos/admins"
@@ -43,6 +43,8 @@ const DUMMY_HASH = "scrypt$16384$8$1$O50R11H4+G3G5y+VKELFfw==$ZYhSlAlxHFu9blMH7M
 // §6.3 e §7.1 do spec: 10 logins a cada 10 minutos e 5 pedidos de recuperação a cada 15, por IP.
 const LOGIN_RATE_LIMIT = { limit: 10, windowMs: 600_000 }
 const FORGOT_RATE_LIMIT = { limit: 5, windowMs: 900_000 }
+// §8.2 do spec de renovação: 5 envios do formulário a cada 10 minutos, por paciente.
+const RENEWAL_RATE_LIMIT = { limit: 5, windowMs: 600_000 }
 
 export type Container = {
   env: Env
@@ -68,9 +70,10 @@ export type Container = {
   seedAdmin: ReturnType<typeof createSeedAdmin>
   patientAdmin: PatientAdmin
   renewal: Renewal
-  forms: ReturnType<typeof createFormsClient>
+  forms: FormsClient
   loginLimiter: RateLimiter
   forgotLimiter: RateLimiter
+  renewalLimiter: RateLimiter
   ping: () => Promise<void>
 }
 
@@ -99,6 +102,7 @@ function buildContainer(): Container {
   const mealConfig = createMealConfigRepo(db)
   const patientRecord = createPatientRecordRepo(db)
   const renewals = createRenewalRepo(db)
+  const forms = createFormsClient({ baseUrl: env.FORMS_INTERNAL_URL, token: env.JOBS_TOKEN, log })
 
   return {
     env,
@@ -120,10 +124,11 @@ function buildContainer(): Container {
     redeemPasswordReset: createRedeemPasswordReset({ resetTokens, hashPassword, hashToken: hashResetToken, now }),
     seedAdmin: createSeedAdmin({ admins, hashPassword, log }),
     patientAdmin: createPatientAdmin({ patients, hashPassword }),
-    renewal: createRenewal({ renewals, now }),
-    forms: createFormsClient({ baseUrl: env.FORMS_INTERNAL_URL, token: env.JOBS_TOKEN, log }),
+    renewal: createRenewal({ renewals, mealPlans, patients, forms, now }),
+    forms,
     loginLimiter: createRateLimiter(LOGIN_RATE_LIMIT),
     forgotLimiter: createRateLimiter(FORGOT_RATE_LIMIT),
+    renewalLimiter: createRateLimiter(RENEWAL_RATE_LIMIT),
     ping: async () => {
       await db.execute(sql`SELECT 1`)
     },
