@@ -108,7 +108,7 @@ O vencimento e a renovação não pedem variável de ambiente nova em nenhum dos
 
 **Atenção:** a migration `0003` **remove** as colunas `meal_plans.due_date_new_meal_plan` e `meal_plans.payment_url_new_meal_plan`, que o PlanA anterior ainda lê. Entre um deploy e o outro, as telas de plano do PlanA antigo respondem com erro. Se o PlanA já está em uso, faça os dois deploys um logo após o outro, num horário de pouco acesso.
 
-No primeiro deploy, todo plano ativo que já está dentro de um estágio de aviso (0 a 5 dias para vencer) recebe a mensagem desse estágio na primeira rodada do job entre 9h e 20h de São Paulo. Fora dessa janela nenhuma rodada enfileira aviso, nem a disparada à mão por `/api/jobs/run`.
+No primeiro deploy, todo plano ativo que já está dentro de um estágio de aviso (0 a 5 dias para vencer) recebe a mensagem desse estágio na primeira rodada do job entre 9h e 20h de São Paulo, menos os planos cuja renovação já está paga (a cobrança criada depois do plano já foi paga e o plano novo está a caminho): esses não recebem aviso. Fora dessa janela nenhuma rodada enfileira aviso, nem a disparada à mão por `/api/jobs/run`.
 
 ## 7. Schema
 

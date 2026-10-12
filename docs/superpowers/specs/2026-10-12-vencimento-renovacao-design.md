@@ -140,6 +140,7 @@ Consequências dessa regra:
 - Se o admin alterar o `end_date` de um plano, os estágios já avisados não se repetem.
 - Plano criado à mão pelo admin também recebe os avisos.
 - Paciente sem telefone (o admin pode cadastrar assim) recebe só o e-mail: nenhuma linha de WhatsApp é criada para ele.
+- No envio, depois de reservar e reler a mensagem, o aviso é conferido de novo contra o plano e a cobrança de renovação lidos na hora. Se o plano deixou de ser `active`, já venceu (dias restantes negativos) ou a renovação está `paid`, a mensagem não sai: vira `failed` com `last_error.step = notify.stale` e não alerta o admin. Faltando de 0 a 5 dias o aviso atrasado ainda sai, porque o texto traz a data de vencimento.
 
 ### 6.2 Texto
 
@@ -291,7 +292,7 @@ O selo da lista ("Vence em 2 dias", "Vence hoje", "Expirado") não muda.
 O link do aviso leva ao formulário, mas o paciente quase sempre chega sem sessão e, hoje, o login o manda para o painel, onde o alerta de `d2` não aparece.
 
 - O `middleware.ts`, ao barrar uma página de `/cliente/*` sem sessão, redireciona para `/cliente/login?next=<caminho>`.
-- A tela de login, depois de entrar, vai para `next` quando ele começa com `/cliente/` e não contém `//` nem `\`. Em qualquer outro caso vai para o painel, como hoje.
+- A tela de login, depois de entrar, vai para `next` quando ele começa com `/cliente/` e não contém `//`, `\`, caractere de controle nem segmento `.` ou `..` (também codificado, como `%2e%2e`). Em qualquer outro caso vai para o painel, como hoje.
 - A troca obrigatória de senha do primeiro acesso continua tendo prioridade e não guarda o `next`.
 
 ## 9. Estrutura do código
@@ -300,7 +301,7 @@ O link do aviso leva ao formulário, mas o paciente quase sempre chega sem sess�
 
 ```
 lib/time.ts                          → hoje em São Paulo e soma de dias (cópia do v0-tami-forms)
-lib/renewal/stage.ts                 → dias restantes, estágio e abertura do formulário
+lib/renewal/rules.ts                 → dias restantes, estágio, abertura do formulário e estado da renovação (cópia do v0-tami-forms)
 lib/renewal/questions.ts             → perguntas e opções
 lib/renewal/alert-state.ts           → o que o alerta mostra
 lib/validation/renewal.ts            → schema zod das respostas
@@ -319,6 +320,7 @@ Alterados: `components/plan-expiration-alert.tsx`, as três rotas da seção 8.3
 **`v0-tami-forms`**
 
 ```
+lib/renewal/rules.ts                 → dias restantes, estágio, abertura do formulário e estado da renovação (fonte; o PlanA copia)
 app/api/renewals/route.ts            → rota
 lib/http/handlers/renewals.ts        → autenticação, leitura do corpo, resposta
 lib/jobs/expiry-reminders.ts         → horário permitido e passo de enfileiramento
