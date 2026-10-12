@@ -15,6 +15,7 @@ export type CreatePatientResult =
         | "invalid_name"
         | "invalid_cpf"
         | "invalid_email"
+        | "invalid_phone"
         | "invalid_password"
         | "cpf_taken"
     }
@@ -22,6 +23,10 @@ export type CreatePatientResult =
 export type PatientInput = { name?: unknown; cpf?: unknown; email?: unknown; phone?: unknown; password?: unknown }
 
 const nonEmptyText = (value: unknown): value is string => typeof value === "string" && value.trim() !== ""
+
+/** Telefone opcional: ausente → ""; texto → normalizado; outro tipo ou formato → `null` (inválido). */
+const phoneOf = (value: unknown): string | null =>
+  value === undefined || value === null ? "" : typeof value === "string" ? normalizePhone(value) : null
 
 /**
  * Cadastro e manutenção de pacientes pelo admin (§9.1 do spec). A identidade é o CPF: o e-mail
@@ -49,13 +54,15 @@ export function createPatientAdmin(d: {
       if (!isValidCpf(input.cpf)) return { ok: false, reason: "invalid_cpf" }
       const email = normalizeEmail(input.email)
       if (!email) return { ok: false, reason: "invalid_email" }
+      const phone = phoneOf(input.phone)
+      if (phone === null) return { ok: false, reason: "invalid_phone" }
       if (!isAcceptablePassword(input.password)) return { ok: false, reason: "invalid_password" }
 
       const created = await d.patients.create({
         name,
         cpf: onlyDigits(input.cpf),
         email,
-        phone: normalizePhone(typeof input.phone === "string" ? input.phone : undefined),
+        phone,
         passwordHash: await d.hashPassword(input.password),
       })
       if (created === "cpf_taken") return { ok: false, reason: "cpf_taken" }
@@ -65,18 +72,16 @@ export function createPatientAdmin(d: {
     async update(
       id: string,
       input: { name?: unknown; email?: unknown; phone?: unknown },
-    ): Promise<PatientRow | "not_found" | "missing_fields" | "invalid_name" | "invalid_email"> {
+    ): Promise<PatientRow | "not_found" | "missing_fields" | "invalid_name" | "invalid_email" | "invalid_phone"> {
       if (!nonEmptyText(input.name) || !nonEmptyText(input.email)) return "missing_fields"
       const name = input.name.trim()
       if (name.length > MAX_NAME_LENGTH) return "invalid_name"
       const email = normalizeEmail(input.email)
       if (!email) return "invalid_email"
+      const phone = phoneOf(input.phone)
+      if (phone === null) return "invalid_phone"
 
-      const updated = await d.patients.update(id, {
-        name,
-        email,
-        phone: normalizePhone(typeof input.phone === "string" ? input.phone : undefined),
-      })
+      const updated = await d.patients.update(id, { name, email, phone })
       return updated ?? "not_found"
     },
 

@@ -46,11 +46,21 @@ describe("contact", () => {
     expect(normalizeEmail(v)).toBeNull()
   })
 
-  it("normalizePhone devolve só dígitos", () => {
-    expect(normalizePhone("(11) 98765-4321")).toBe("11987654321")
+  it.each([
+    ["(11) 98765-4321", "11987654321"],
+    ["(11) 3456-7890", "1134567890"],
+    ["+55 (11) 98765-4321", "11987654321"],
+    ["5511987654321", "11987654321"],
+    ["551134567890", "1134567890"],
+  ])("normalizePhone(%j) → %j (mesma regra do quiz: sem 55, 10 ou 11 dígitos)", (raw, expected) => {
+    expect(normalizePhone(raw)).toBe(expected)
   })
 
-  it.each([undefined, "", "   ", "1".repeat(14)])("normalizePhone devolve vazio para %j", (v) => {
+  it.each([undefined, "", "   "])("normalizePhone devolve vazio (sem telefone) para %j", (v) => {
     expect(normalizePhone(v)).toBe("")
+  })
+
+  it.each(["123", "1".repeat(9), "1".repeat(14), "abc", "55123"])("normalizePhone recusa %j", (v) => {
+    expect(normalizePhone(v)).toBeNull()
   })
 })

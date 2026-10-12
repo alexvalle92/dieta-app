@@ -100,6 +100,18 @@ describe("patientAdmin.create", () => {
     expect(await verifyPassword(valid.password, stored)).toBe(true)
   })
 
+  it.each(["123", "(11) 9876-43", "1".repeat(14), "abc"])("telefone inválido %j → invalid_phone", async (phone) => {
+    const s = setup()
+    expect(await s.admin.create({ ...valid, phone })).toEqual({ ok: false, reason: "invalid_phone" })
+    expect(s.patients.create).not.toHaveBeenCalled()
+  })
+
+  it("telefone com +55 é gravado sem o 55 (como o quiz grava)", async () => {
+    const s = setup()
+    await s.admin.create({ ...valid, phone: "+55 (11) 98765-4321" })
+    expect((s.patients.create as unknown as ReturnType<typeof vi.fn>).mock.calls[0][0].phone).toBe("11987654321")
+  })
+
   it("telefone ausente vira vazio", async () => {
     const s = setup()
     await s.admin.create({ ...valid, phone: undefined })
@@ -118,6 +130,12 @@ describe("patientAdmin.update", () => {
     expect(await s.admin.update("x", { name: "", email: "ana@gmail.com" })).toBe("missing_fields")
     expect(await s.admin.update("x", { name: "Ana", email: "" })).toBe("missing_fields")
     expect(await s.admin.update("x", { name: "Ana", email: "invalido" })).toBe("invalid_email")
+    expect(s.patients.update).not.toHaveBeenCalled()
+  })
+
+  it("telefone inválido → invalid_phone, sem gravar", async () => {
+    const s = setup()
+    expect(await s.admin.update("patient-1", { name: "Ana", email: "ana@gmail.com", phone: "123" })).toBe("invalid_phone")
     expect(s.patients.update).not.toHaveBeenCalled()
   })
 

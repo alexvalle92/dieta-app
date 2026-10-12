@@ -40,6 +40,8 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ error: 'CPF inválido' }, { status: 400 })
         case 'invalid_email':
           return NextResponse.json({ error: 'E-mail inválido' }, { status: 400 })
+        case 'invalid_phone':
+          return NextResponse.json({ error: 'Telefone inválido. Informe o DDD e o número' }, { status: 400 })
         case 'invalid_password':
           return NextResponse.json(
             { error: `A senha deve ter entre ${MIN_PASSWORD_LENGTH} e ${MAX_PASSWORD_LENGTH} caracteres` },

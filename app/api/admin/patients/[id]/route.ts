@@ -47,6 +47,9 @@ export async function PUT(request: NextRequest, { params }: Params) {
     if (result === 'invalid_email') {
       return NextResponse.json({ error: 'E-mail inválido' }, { status: 400 })
     }
+    if (result === 'invalid_phone') {
+      return NextResponse.json({ error: 'Telefone inválido. Informe o DDD e o número' }, { status: 400 })
+    }
 
     return NextResponse.json({ success: true, patient: publicPatient(result) })
   } catch (error) {
