@@ -1,45 +1,20 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/server/db'
-import { mealPlans } from '@/shared/schema'
-import { requireAuth } from '@/lib/auth'
-import { eq, desc } from 'drizzle-orm'
+import { NextResponse } from 'next/server'
+import { requirePatient } from '@/lib/auth/guards'
+import { getContainer } from '@/lib/container'
 
-export async function GET(request: NextRequest) {
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
+export async function GET() {
+  const c = getContainer()
   try {
-    const session = await requireAuth('patient')
-    
-    if (!session) {
-      return NextResponse.json(
-        { error: 'Acesso não autorizado' },
-        { status: 401 }
-      )
-    }
+    const guard = await requirePatient()
+    if (!guard.ok) return guard.response
 
-    const mealPlansList = await db
-      .select({
-        id: mealPlans.id,
-        patientId: mealPlans.patientId,
-        title: mealPlans.title,
-        description: mealPlans.description,
-        startDate: mealPlans.startDate,
-        endDate: mealPlans.endDate,
-        dueDateNewMealPlan: mealPlans.dueDateNewMealPlan,
-        paymentUrlNewMealPlan: mealPlans.paymentUrlNewMealPlan,
-        status: mealPlans.status,
-        planData: mealPlans.planData,
-        createdAt: mealPlans.createdAt,
-        updatedAt: mealPlans.updatedAt,
-      })
-      .from(mealPlans)
-      .where(eq(mealPlans.patientId, session.userId))
-      .orderBy(desc(mealPlans.createdAt))
-
-    return NextResponse.json({ mealPlans: mealPlansList })
+    const mealPlans = await c.repos.mealPlans.listByPatient(guard.session.userId)
+    return NextResponse.json({ mealPlans })
   } catch (error) {
-    console.error('Meal plans fetch error:', error)
-    return NextResponse.json(
-      { error: 'Erro ao buscar planos alimentares' },
-      { status: 500 }
-    )
+    c.log.error('client.meal_plans.list_error', { message: error instanceof Error ? error.name : 'unknown' })
+    return NextResponse.json({ error: 'Erro ao buscar planos alimentares' }, { status: 500 })
   }
 }

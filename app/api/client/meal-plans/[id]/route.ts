@@ -1,71 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/server/db'
-import { mealPlans } from '@/shared/schema'
-import { requireAuth } from '@/lib/auth'
-import { eq, and } from 'drizzle-orm'
+import { requirePatient } from '@/lib/auth/guards'
+import { getContainer } from '@/lib/container'
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const c = getContainer()
   try {
-    const session = await requireAuth('patient')
-    
-    if (!session) {
-      return NextResponse.json(
-        { error: 'Acesso não autorizado' },
-        { status: 401 }
-      )
-    }
+    const guard = await requirePatient()
+    if (!guard.ok) return guard.response
 
     const { id } = await params
-
-    const [mealPlan] = await db
-      .select({
-        id: mealPlans.id,
-        patientId: mealPlans.patientId,
-        title: mealPlans.title,
-        description: mealPlans.description,
-        startDate: mealPlans.startDate,
-        endDate: mealPlans.endDate,
-        dueDateNewMealPlan: mealPlans.dueDateNewMealPlan,
-        paymentUrlNewMealPlan: mealPlans.paymentUrlNewMealPlan,
-        status: mealPlans.status,
-        planData: mealPlans.planData,
-        createdAt: mealPlans.createdAt,
-        updatedAt: mealPlans.updatedAt,
-      })
-      .from(mealPlans)
-      .where(
-        and(
-          eq(mealPlans.id, id),
-          eq(mealPlans.patientId, session.userId)
-        )
-      )
-      .limit(1)
-
+    const mealPlan = await c.repos.mealPlans.getForPatient(id, guard.session.userId)
     if (!mealPlan) {
-      return NextResponse.json(
-        { error: 'Plano alimentar não encontrado' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Plano alimentar não encontrado' }, { status: 404 })
     }
 
-    // Ensure status comparison is robust
-    const currentStatus = (mealPlan.status || '').toString().trim().toLowerCase()
-    if (currentStatus !== 'active') {
-      return NextResponse.json(
-        { error: 'Este plano alimentar não está mais ativo' },
-        { status: 403 }
-      )
+    // Só o plano ativo abre; os concluídos e cancelados aparecem na lista, mas não no detalhe.
+    if ((mealPlan.status || '').trim().toLowerCase() !== 'active') {
+      return NextResponse.json({ error: 'Este plano alimentar não está mais ativo' }, { status: 403 })
     }
 
     return NextResponse.json({ mealPlan })
   } catch (error) {
-    console.error('Meal plan fetch error:', error)
-    return NextResponse.json(
-      { error: 'Erro ao buscar plano alimentar' },
-      { status: 500 }
-    )
+    c.log.error('client.meal_plans.get_error', { message: error instanceof Error ? error.name : 'unknown' })
+    return NextResponse.json({ error: 'Erro ao buscar plano alimentar' }, { status: 500 })
   }
 }

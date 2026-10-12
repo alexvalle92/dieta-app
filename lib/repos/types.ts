@@ -62,3 +62,65 @@ export interface ResetTokenRepo {
   /** Uma transação (§7.2, passo 3). `invalid`: inexistente ou usado. `expired`: `expires_at <= now`. */
   redeem(d: { tokenHash: string; passwordHash: string; now: Date }): Promise<"ok" | "invalid" | "expired">
 }
+
+export type MealPlanRow = {
+  id: string
+  patientId: string
+  title: string
+  description: string | null
+  startDate: string
+  endDate: string | null
+  dueDateNewMealPlan: string | null
+  paymentUrlNewMealPlan: string | null
+  status: string
+  planData: unknown
+  createdAt: Date
+  updatedAt: Date
+}
+
+export type MealPlanWithPatient = MealPlanRow & {
+  patient: { id: string; name: string; email: string; cpf: string } | null
+}
+
+export type MealPlanInput = {
+  patientId: string
+  title: string
+  description: string | null
+  startDate: string
+  endDate: string | null
+  status: string
+  planData: unknown
+}
+
+export interface MealPlanRepo {
+  /** `created_at` decrescente. */
+  listByPatient(patientId: string): Promise<MealPlanRow[]>
+  getForPatient(id: string, patientId: string): Promise<MealPlanRow | null>
+  /** `created_at` decrescente, com o paciente. */
+  listAll(): Promise<MealPlanWithPatient[]>
+  get(id: string): Promise<MealPlanWithPatient | null>
+  /**
+   * Com `status` "active", os outros planos `active` do paciente viram `completed`, na mesma
+   * transação (§9.1 do spec): um paciente nunca tem dois planos ativos.
+   */
+  create(d: MealPlanInput, now: Date): Promise<MealPlanWithPatient | "patient_not_found">
+  /** `null` em `description`/`endDate` limpa o campo; `undefined` mantém. Aplica a mesma regra do `create`. */
+  update(
+    id: string,
+    d: Partial<MealPlanInput>,
+    now: Date,
+  ): Promise<MealPlanWithPatient | "not_found" | "patient_not_found">
+  /** `in_use`: há linha em `plan_generations` apontando para o plano. */
+  delete(id: string): Promise<"deleted" | "not_found" | "in_use">
+}
+
+export interface StatsRepo {
+  admin(range: { monthStart: Date; lastMonthStart: Date }): Promise<{
+    totalPatients: number
+    activePlans: number
+    totalRecipes: number
+    newThisMonth: number
+    newLastMonth: number
+  }>
+  recipesCount(): Promise<number>
+}
