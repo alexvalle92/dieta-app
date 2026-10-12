@@ -41,6 +41,22 @@ describe("middleware", () => {
     redirectsTo(await call("/admin/dashboard"), "/admin/login")
   })
 
+  it("/cliente sem sessão leva o destino em `next`; /admin e a troca de senha não levam", async () => {
+    const toClientLogin = await call("/cliente/planos/abc/renovar")
+    redirectsTo(toClientLogin, "/cliente/login")
+    expect(new URL(toClientLogin.headers.get("location")!).searchParams.get("next")).toBe(
+      "/cliente/planos/abc/renovar",
+    )
+
+    const toAdminLogin = await call("/admin/pacientes")
+    redirectsTo(toAdminLogin, "/admin/login")
+    expect(new URL(toAdminLogin.headers.get("location")!).searchParams.has("next")).toBe(false)
+
+    const toChangePassword = await call("/cliente/planos/abc/renovar", { ...patient, mustChangePassword: true })
+    redirectsTo(toChangePassword, "/cliente/recuperar-senha")
+    expect(new URL(toChangePassword.headers.get("location")!).searchParams.has("next")).toBe(false)
+  })
+
   it.each(["/cliente/login", "/cliente/esqueci-senha", "/cliente/redefinir-senha/abc", "/admin/login"])(
     "%s é público",
     async (path) => {

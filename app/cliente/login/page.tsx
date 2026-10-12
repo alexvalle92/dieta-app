@@ -16,6 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Toaster } from "sonner";
+import { safeNextPath } from "@/lib/auth/next-path";
 
 export default function ClientLoginPage() {
   const router = useRouter();
@@ -69,6 +70,16 @@ export default function ClientLoginPage() {
 
       if (!response.ok) {
         toast.error(data.error || "CPF/Email ou senha inválidos");
+        return;
+      }
+
+      // Volta para a página pedida (middleware leva `next`); lido aqui para não exigir Suspense.
+      const next = safeNextPath(
+        new URLSearchParams(window.location.search).get("next"),
+      );
+      // Troca de senha forçada: o middleware desvia /cliente/* para /cliente/recuperar-senha, sem `next`.
+      if (next) {
+        router.push(next);
         return;
       }
 
