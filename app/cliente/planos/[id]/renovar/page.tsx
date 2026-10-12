@@ -10,6 +10,7 @@ import { RenewalForm } from "@/components/renewal-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { RENEWAL_BLOCK_MESSAGES, type RenewalBlock } from "@/lib/renewal/messages";
+import { newSubmissionId } from "@/lib/renewal/submission-id";
 import type { RenewalAnswers } from "@/lib/validation/renewal";
 
 interface RenewalFormData {
@@ -60,9 +61,10 @@ export default function RenovarPlanoPage({
   }, [id, router]);
 
   const handleSubmit = async (answers: RenewalAnswers) => {
-    if (!submissionId.current) submissionId.current = crypto.randomUUID();
     setSubmitting(true);
     try {
+      // Dentro do try: se gerar o id falhar, o paciente vê o aviso de erro em vez de um clique sem efeito.
+      if (!submissionId.current) submissionId.current = newSubmissionId();
       const response = await fetch(`/api/client/meal-plans/${id}/renewal`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
