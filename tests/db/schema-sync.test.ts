@@ -12,6 +12,16 @@ describe("schema compartilhado", () => {
     expect(normalize(readFileSync(mine, "utf8"))).toBe(normalize(readFileSync(sibling, "utf8")))
   })
 
+  // As regras de vencimento e o relógio de São Paulo também são cópias (fonte: v0-tami-forms).
+  for (const file of ["lib/renewal/rules.ts", "lib/time.ts"]) {
+    const source = path.resolve(process.cwd(), "../v0-tami-forms", file)
+    it.skipIf(!existsSync(source))(`${file} é idêntico ao do v0-tami-forms`, () => {
+      expect(normalize(readFileSync(path.resolve(process.cwd(), file), "utf8"))).toBe(
+        normalize(readFileSync(source, "utf8")),
+      )
+    })
+  }
+
   it("a cópia traz as tabelas do PlanA e a fila de mensagens sem quiz", () => {
     const text = readFileSync(mine, "utf8")
     for (const table of ["admins", "password_reset_tokens", "recipes", "meal_categories", "allowed_meal_items", "app_settings"]) {
