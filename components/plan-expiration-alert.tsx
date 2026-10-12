@@ -10,19 +10,20 @@ import {
   RefreshCw,
 } from "lucide-react";
 import Link from "next/link";
+import { alertView } from "@/lib/renewal/alert-state";
+import type { RenewalStatus } from "@/lib/renewal/rules";
 
 interface MealPlanForAlert {
   id: string;
   endDate: string | null;
-  dueDateNewMealPlan: string | null;
-  paymentUrlNewMealPlan: string | null;
   status: string;
+  renewalStatus: RenewalStatus;
+  paymentUrlNewMealPlan: string | null;
 }
 
 interface PlanExpirationAlertProps {
   plans: MealPlanForAlert[];
   variant: "list" | "detail";
-  planPrice?: number;
 }
 
 function calculateDaysRemaining(dateStr: string | null): number | null {
@@ -83,7 +84,6 @@ function getExpirationStatus(daysRemaining: number | null): ExpirationStatus {
 export function PlanExpirationAlert({
   plans,
   variant,
-  planPrice = 97,
 }: PlanExpirationAlertProps) {
   if (plans.length === 0) return null;
 
@@ -94,209 +94,96 @@ export function PlanExpirationAlert({
   if (hasOtherNonExpiredPlan(plans, plan.id)) return null;
 
   const daysRemaining = calculateDaysRemaining(plan.endDate);
-  const status = getExpirationStatus(daysRemaining);
 
-  if (status === "ok") return null;
+  // Qual alerta mostrar sai do estado da renovação (lib/renewal/alert-state.ts)
+  const view = alertView({
+    variant,
+    daysLeft: daysRemaining,
+    renewalStatus: plan.renewalStatus,
+    paymentUrl: plan.paymentUrlNewMealPlan,
+  });
+  if (!view) return null;
 
-  const hasDueDate = plan.dueDateNewMealPlan !== null;
-  const dueDateDaysRemaining = calculateDaysRemaining(plan.dueDateNewMealPlan);
-  const isDueDateExpired =
-    dueDateDaysRemaining !== null && dueDateDaysRemaining < 0;
-  const isDueDateValid =
-    dueDateDaysRemaining !== null && dueDateDaysRemaining >= 0;
+  // Margem inferior: a listagem usa mb-4 e o detalhe mb-6
+  const margin = variant === "list" ? "mb-4" : "mb-6";
 
-  // Na listagem, apenas D-0 e Expired são mostrados
-  if (variant === "list") {
-    if (status === "d0") {
-      if (hasDueDate && isDueDateValid) {
-        return (
-          <Alert
-            variant="destructive"
-            className="mb-4 border-orange-500 bg-orange-50 text-orange-900"
-          >
-            <Clock className="h-4 w-4" />
-            <AlertTitle className="font-semibold">
-              Seu plano vence hoje!
-            </AlertTitle>
-            <AlertDescription className="mt-2">
-              <p>
-                Você já preencheu o formulário. Efetue o pagamento para liberar
-                seu novo plano ou atualize seus dados se necessário.
-              </p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {plan?.paymentUrlNewMealPlan && (
-                  <Link href={plan.paymentUrlNewMealPlan} target="_blank">
-                    <Button
-                      size="sm"
-                      className="gap-2 bg-green-600 hover:bg-green-700"
-                    >
-                      <CreditCard className="h-4 w-4" />
-                      Efetuar Pagamento
-                    </Button>
-                  </Link>
-                )}
-                <Link href={`/cliente/planos/${plan.id}/renovar`}>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="gap-2 border-orange-500 text-orange-700 hover:bg-orange-100"
-                  >
-                    <RefreshCw className="h-4 w-4" />
-                    Atualizar Dados
-                  </Button>
-                </Link>
-              </div>
-            </AlertDescription>
-          </Alert>
-        );
-      }
-
-      return (
-        <Alert
-          variant="destructive"
-          className="mb-4 border-orange-500 bg-orange-50 text-orange-900"
-        >
-          <Clock className="h-4 w-4" />
-          <AlertTitle className="font-semibold">
-            Seu plano vence hoje!
-          </AlertTitle>
-          <AlertDescription className="mt-2">
-            <p>
-              Seu plano alimentar vence hoje. Para receber um novo plano
-              atualizado, é só preencher o formulário de atualização.
-            </p>
-            <Link href={`/cliente/planos/${plan.id}/renovar`}>
-              <Button
-                size="sm"
-                className="mt-3 gap-2 bg-orange-600 hover:bg-orange-700"
-              >
-                <FileText className="h-4 w-4" />
-                Preencher Formulário
-              </Button>
-            </Link>
-          </AlertDescription>
-        </Alert>
-      );
-    }
-
-    if (status === "expired") {
-      if (hasDueDate && isDueDateValid) {
-        return (
-          <Alert variant="destructive" className="mb-4">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertTitle className="font-semibold">Plano Expirado</AlertTitle>
-            <AlertDescription className="mt-2">
-              <p>
-                Você já preencheu o formulário. Efetue o pagamento para liberar
-                seu novo plano ou atualize seus dados se necessário.
-              </p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {plan?.paymentUrlNewMealPlan && (
-                  <Link href={plan.paymentUrlNewMealPlan} target="_blank">
-                    <Button
-                      size="sm"
-                      className="gap-2 bg-green-600 hover:bg-green-700"
-                    >
-                      <CreditCard className="h-4 w-4" />
-                      Efetuar Pagamento
-                    </Button>
-                  </Link>
-                )}
-                <Link href={`/cliente/planos/${plan.id}/renovar`}>
-                  <Button size="sm" variant="outline" className="gap-2">
-                    <RefreshCw className="h-4 w-4" />
-                    Atualizar Dados
-                  </Button>
-                </Link>
-              </div>
-            </AlertDescription>
-          </Alert>
-        );
-      }
-
-      if (hasDueDate && isDueDateExpired) {
-        return (
-          <Alert variant="destructive" className="mb-4">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertTitle className="font-semibold">Plano Expirado</AlertTitle>
-            <AlertDescription className="mt-2">
-              <p>
-                O prazo para pagamento expirou. Preencha o formulário novamente
-                para renovar seu plano.
-              </p>
-              <Link href={`/cliente/planos/${plan.id}/renovar`}>
-                <Button size="sm" className="mt-3 gap-2">
-                  <FileText className="h-4 w-4" />
-                  Preencher Formulário Novamente
-                </Button>
-              </Link>
-            </AlertDescription>
-          </Alert>
-        );
-      }
-
-      return (
-        <Alert variant="destructive" className="mb-4">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle className="font-semibold">Plano Expirado</AlertTitle>
-          <AlertDescription className="mt-2">
-            <p>
-              Seu plano alimentar expirou. Para liberar um novo plano
-              atualizado, é só atualizar seus dados e concluir o pagamento.
-            </p>
-            <Link href={`/cliente/planos/${plan.id}/renovar`}>
-              <Button size="sm" className="mt-3 gap-2">
-                <FileText className="h-4 w-4" />
-                Preencher Formulário
-              </Button>
-            </Link>
-          </AlertDescription>
-        </Alert>
-      );
-    }
+  if (view.kind === "paid") {
+    return (
+      <Alert className={`${margin} border-blue-500 bg-blue-50 text-blue-900`}>
+        <Clock className="h-4 w-4" />
+        <AlertTitle className="font-semibold">Pagamento confirmado</AlertTitle>
+        <AlertDescription className="mt-2">
+          <p>
+            Recebemos seu pagamento. Seu novo plano alimentar está sendo
+            preparado e aparece aqui em alguns minutos.
+          </p>
+        </AlertDescription>
+      </Alert>
+    );
   }
 
-  if (variant === "detail") {
-    if (status === "d5") {
+  if (view.kind === "d5") {
+    return (
+      <Alert className={`${margin} border-blue-500 bg-blue-50 text-blue-900`}>
+        <Clock className="h-4 w-4" />
+        <AlertTitle className="font-semibold">
+          Seu plano está acabando
+        </AlertTitle>
+        <AlertDescription className="mt-2">
+          <p>
+            Faltam <strong>{daysRemaining} dias</strong> para o seu plano
+            alimentar vencer.
+          </p>
+          <p className="mt-2">
+            Em breve vamos liberar um formulário rápido de atualização para
+            ajustar seu próximo plano.
+          </p>
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  if (view.kind === "payment_expired") {
+    return (
+      <Alert variant="destructive" className={margin}>
+        <AlertTriangle className="h-4 w-4" />
+        <AlertTitle className="font-semibold">Plano Expirado</AlertTitle>
+        <AlertDescription className="mt-2">
+          <p>
+            O prazo para pagamento expirou. Preencha o formulário novamente
+            para renovar seu plano.
+          </p>
+          <Link href={`/cliente/planos/${plan.id}/renovar`}>
+            <Button size="sm" className="mt-3 gap-2">
+              <FileText className="h-4 w-4" />
+              Preencher Formulário Novamente
+            </Button>
+          </Link>
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  if (view.kind === "pay") {
+    const paymentUrl = view.paymentUrl;
+    const payParagraph = paymentUrl
+      ? "Você já preencheu o formulário. Efetue o pagamento para liberar seu novo plano ou atualize seus dados se necessário."
+      : "Você já preencheu o formulário. Seu link de pagamento está sendo gerado e chega por e-mail e WhatsApp em instantes.";
+
+    if (view.stage === "d2") {
       return (
-        <Alert className="mb-6 border-blue-500 bg-blue-50 text-blue-900">
+        <Alert className={`${margin} border-yellow-500 bg-yellow-50 text-yellow-900`}>
           <Clock className="h-4 w-4" />
-          <AlertTitle className="font-semibold">
-            Seu plano está acabando
-          </AlertTitle>
+          <AlertTitle className="font-semibold">Faltam poucos dias!</AlertTitle>
           <AlertDescription className="mt-2">
             <p>
               Faltam <strong>{daysRemaining} dias</strong> para o seu plano
               alimentar vencer.
             </p>
-            <p className="mt-2">
-              Em breve vamos liberar um formulário rápido de atualização para
-              ajustar seu próximo plano.
-            </p>
-          </AlertDescription>
-        </Alert>
-      );
-    }
-
-    if (status === "d2") {
-      if (hasDueDate && isDueDateValid) {
-        return (
-          <Alert className="mb-6 border-yellow-500 bg-yellow-50 text-yellow-900">
-            <Clock className="h-4 w-4" />
-            <AlertTitle className="font-semibold">
-              Faltam poucos dias!
-            </AlertTitle>
-            <AlertDescription className="mt-2">
-              <p>
-                Faltam <strong>{daysRemaining} dias</strong> para o seu plano
-                alimentar vencer.
-              </p>
-              <p className="mt-2">
-                Você já preencheu o formulário. Efetue o pagamento para liberar
-                seu novo plano ou atualize seus dados se necessário.
-              </p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <Link href={`/cliente/planos/${plan.id}/pagamento`}>
+            <p className="mt-2">{payParagraph}</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {paymentUrl && (
+                <Link href={paymentUrl} target="_blank">
                   <Button
                     size="sm"
                     className="gap-2 bg-green-600 hover:bg-green-700 text-white"
@@ -305,146 +192,178 @@ export function PlanExpirationAlert({
                     Efetuar Pagamento
                   </Button>
                 </Link>
-                <Link href={`/cliente/planos/${plan.id}/renovar`}>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="gap-2 border-yellow-500 text-yellow-700 hover:bg-yellow-100"
-                  >
-                    <RefreshCw className="h-4 w-4" />
-                    Atualizar Dados
-                  </Button>
-                </Link>
-              </div>
-            </AlertDescription>
-          </Alert>
-        );
-      }
-
-      return (
-        <Alert className="mb-6 border-yellow-500 bg-yellow-50 text-yellow-900">
-          <Clock className="h-4 w-4" />
-          <AlertTitle className="font-semibold">Faltam poucos dias!</AlertTitle>
-          <AlertDescription className="mt-2">
-            <p>
-              Faltam <strong>{daysRemaining} dias</strong> para o seu plano
-              alimentar vencer.
-            </p>
-            <p className="mt-2">
-              Já deixamos disponível o formulário de atualização (leva menos de
-              3 minutos). Após o preenchimento, iremos liberar seu novo plano
-              facilmente.
-            </p>
-            <Link href={`/cliente/planos/${plan.id}/renovar`}>
-              <Button
-                size="sm"
-                className="mt-3 gap-2 bg-yellow-600 hover:bg-yellow-700 text-white"
-              >
-                <FileText className="h-4 w-4" />
-                Preencher Formulário
-              </Button>
-            </Link>
+              )}
+              <Link href={`/cliente/planos/${plan.id}/renovar`}>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-2 border-yellow-500 text-yellow-700 hover:bg-yellow-100"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  Atualizar Dados
+                </Button>
+              </Link>
+            </div>
           </AlertDescription>
         </Alert>
       );
     }
 
-    if (status === "d0") {
-      if (hasDueDate && isDueDateValid) {
-        return (
-          <Alert
-            variant="destructive"
-            className="mb-6 border-orange-500 bg-orange-50 text-orange-900"
-          >
-            <AlertTriangle className="h-4 w-4" />
-            <AlertTitle className="font-semibold">
-              Seu plano vence hoje!
-            </AlertTitle>
-            <AlertDescription className="mt-2">
-              <p>
-                Você já preencheu o formulário. Efetue o pagamento para liberar
-                seu novo plano ou atualize seus dados se necessário.
-              </p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {plan?.paymentUrlNewMealPlan && (
-                  <Link href={plan.paymentUrlNewMealPlan} target="_blank">
-                    <Button
-                      size="sm"
-                      className="gap-2 bg-green-600 hover:bg-green-700"
-                    >
-                      <CreditCard className="h-4 w-4" />
-                      Efetuar Pagamento
-                    </Button>
-                  </Link>
-                )}
-                <Link href={`/cliente/planos/${plan.id}/renovar`}>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="gap-2 border-orange-500 text-orange-700 hover:bg-orange-100"
-                  >
-                    <RefreshCw className="h-4 w-4" />
-                    Atualizar Dados
-                  </Button>
-                </Link>
-              </div>
-            </AlertDescription>
-          </Alert>
-        );
-      }
-
+    if (view.stage === "d0") {
       return (
         <Alert
           variant="destructive"
-          className="mb-6 border-orange-500 bg-orange-50 text-orange-900"
+          className={`${margin} border-orange-500 bg-orange-50 text-orange-900`}
         >
-          <AlertTriangle className="h-4 w-4" />
+          {variant === "list" ? (
+            <Clock className="h-4 w-4" />
+          ) : (
+            <AlertTriangle className="h-4 w-4" />
+          )}
           <AlertTitle className="font-semibold">
             Seu plano vence hoje!
           </AlertTitle>
           <AlertDescription className="mt-2">
-            <p>
-              Seu plano alimentar vence hoje. Para receber um novo plano
-              atualizado, é só preencher o formulário de atualização.
-            </p>
-            <Link href={`/cliente/planos/${plan.id}/renovar`}>
-              <Button
-                size="sm"
-                className="mt-3 gap-2 bg-orange-600 hover:bg-orange-700"
-              >
-                <FileText className="h-4 w-4" />
-                Preencher Formulário
-              </Button>
-            </Link>
+            <p>{payParagraph}</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {paymentUrl && (
+                <Link href={paymentUrl} target="_blank">
+                  <Button
+                    size="sm"
+                    className="gap-2 bg-green-600 hover:bg-green-700"
+                  >
+                    <CreditCard className="h-4 w-4" />
+                    Efetuar Pagamento
+                  </Button>
+                </Link>
+              )}
+              <Link href={`/cliente/planos/${plan.id}/renovar`}>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-2 border-orange-500 text-orange-700 hover:bg-orange-100"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  Atualizar Dados
+                </Button>
+              </Link>
+            </div>
           </AlertDescription>
         </Alert>
       );
     }
 
-    // No detalhe também mostramos o alerta de expirado caso o usuário acesse um plano antigo
-    if (status === "expired") {
-      return (
-        <Alert variant="destructive" className="mb-6">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle className="font-semibold">Plano Expirado</AlertTitle>
-          <AlertDescription className="mt-2">
-            <p>
-              Seu plano alimentar expirou. Para liberar um novo plano
-              atualizado, é só atualizar seus dados e concluir o pagamento.
-            </p>
+    // stage === "expired" (só na listagem)
+    return (
+      <Alert variant="destructive" className={margin}>
+        <AlertTriangle className="h-4 w-4" />
+        <AlertTitle className="font-semibold">Plano Expirado</AlertTitle>
+        <AlertDescription className="mt-2">
+          <p>{payParagraph}</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {paymentUrl && (
+              <Link href={paymentUrl} target="_blank">
+                <Button
+                  size="sm"
+                  className="gap-2 bg-green-600 hover:bg-green-700"
+                >
+                  <CreditCard className="h-4 w-4" />
+                  Efetuar Pagamento
+                </Button>
+              </Link>
+            )}
             <Link href={`/cliente/planos/${plan.id}/renovar`}>
-              <Button size="sm" className="mt-3 gap-2">
-                <FileText className="h-4 w-4" />
-                Preencher Formulário
+              <Button size="sm" variant="outline" className="gap-2">
+                <RefreshCw className="h-4 w-4" />
+                Atualizar Dados
               </Button>
             </Link>
-          </AlertDescription>
-        </Alert>
-      );
-    }
+          </div>
+        </AlertDescription>
+      </Alert>
+    );
   }
 
-  return null;
+  // view.kind === "form"
+  if (view.stage === "d2") {
+    return (
+      <Alert className={`${margin} border-yellow-500 bg-yellow-50 text-yellow-900`}>
+        <Clock className="h-4 w-4" />
+        <AlertTitle className="font-semibold">Faltam poucos dias!</AlertTitle>
+        <AlertDescription className="mt-2">
+          <p>
+            Faltam <strong>{daysRemaining} dias</strong> para o seu plano
+            alimentar vencer.
+          </p>
+          <p className="mt-2">
+            Já deixamos disponível o formulário de atualização (leva menos de 3
+            minutos). Após o preenchimento, iremos liberar seu novo plano
+            facilmente.
+          </p>
+          <Link href={`/cliente/planos/${plan.id}/renovar`}>
+            <Button
+              size="sm"
+              className="mt-3 gap-2 bg-yellow-600 hover:bg-yellow-700 text-white"
+            >
+              <FileText className="h-4 w-4" />
+              Preencher Formulário
+            </Button>
+          </Link>
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  if (view.stage === "d0") {
+    return (
+      <Alert
+        variant="destructive"
+        className={`${margin} border-orange-500 bg-orange-50 text-orange-900`}
+      >
+        {variant === "list" ? (
+          <Clock className="h-4 w-4" />
+        ) : (
+          <AlertTriangle className="h-4 w-4" />
+        )}
+        <AlertTitle className="font-semibold">Seu plano vence hoje!</AlertTitle>
+        <AlertDescription className="mt-2">
+          <p>
+            Seu plano alimentar vence hoje. Para receber um novo plano
+            atualizado, é só preencher o formulário de atualização.
+          </p>
+          <Link href={`/cliente/planos/${plan.id}/renovar`}>
+            <Button
+              size="sm"
+              className="mt-3 gap-2 bg-orange-600 hover:bg-orange-700"
+            >
+              <FileText className="h-4 w-4" />
+              Preencher Formulário
+            </Button>
+          </Link>
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  // stage === "expired"
+  return (
+    <Alert variant="destructive" className={margin}>
+      <AlertTriangle className="h-4 w-4" />
+      <AlertTitle className="font-semibold">Plano Expirado</AlertTitle>
+      <AlertDescription className="mt-2">
+        <p>
+          Seu plano alimentar expirou. Para liberar um novo plano atualizado, é
+          só atualizar seus dados e concluir o pagamento.
+        </p>
+        <Link href={`/cliente/planos/${plan.id}/renovar`}>
+          <Button size="sm" className="mt-3 gap-2">
+            <FileText className="h-4 w-4" />
+            Preencher Formulário
+          </Button>
+        </Link>
+      </AlertDescription>
+    </Alert>
+  );
 }
 
 export function PlanExpirationBadge({ plans }: { plans: MealPlanForAlert[] }) {

@@ -25,6 +25,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast, Toaster } from "sonner";
 import { PlanExpirationAlert } from "@/components/plan-expiration-alert";
+import type { RenewalStatus } from "@/lib/renewal/rules";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -43,6 +44,7 @@ interface ActivePlan {
   endDate: string | null;
   dueDateNewMealPlan: string | null;
   paymentUrlNewMealPlan: string | null;
+  renewalStatus: RenewalStatus;
 }
 
 interface PlanForAlert {
@@ -50,6 +52,7 @@ interface PlanForAlert {
   endDate: string | null;
   dueDateNewMealPlan: string | null;
   paymentUrlNewMealPlan: string | null;
+  renewalStatus: RenewalStatus;
   status: string;
 }
 

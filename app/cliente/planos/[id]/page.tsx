@@ -11,6 +11,7 @@ import Link from "next/link"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { PlanExpirationAlert } from "@/components/plan-expiration-alert"
+import type { RenewalStatus } from "@/lib/renewal/rules"
 
 interface MealPlan {
   id: string
@@ -20,6 +21,7 @@ interface MealPlan {
   endDate: string | null
   dueDateNewMealPlan: string | null
   paymentUrlNewMealPlan: string | null
+  renewalStatus: RenewalStatus
   status: 'active' | 'completed' | 'cancelled'
   planData: {
     calories?: number
@@ -154,7 +156,7 @@ export default function PlanoDetalhePage({ params }: { params: Promise<{ id: str
           plans={[{ 
             id: mealPlan.id, 
             endDate: mealPlan.endDate, 
-            dueDateNewMealPlan: mealPlan.dueDateNewMealPlan,
+            renewalStatus: mealPlan.renewalStatus,
             paymentUrlNewMealPlan: mealPlan.paymentUrlNewMealPlan,
             status: mealPlan.status 
           }]} 

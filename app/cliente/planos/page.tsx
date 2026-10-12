@@ -20,6 +20,7 @@ import {
   PlanExpirationBadge,
 } from "@/components/plan-expiration-alert";
 import { Pagination } from "@/components/pagination";
+import type { RenewalStatus } from "@/lib/renewal/rules";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -31,6 +32,7 @@ interface MealPlan {
   endDate: string | null;
   dueDateNewMealPlan: string | null;
   paymentUrlNewMealPlan: string | null;
+  renewalStatus: RenewalStatus;
   status: "active" | "completed" | "cancelled";
   planData: {
     calories?: number;
@@ -154,7 +156,7 @@ export default function ClientPlanosPage() {
               plans={mealPlans.map((p) => ({
                 id: p.id,
                 endDate: p.endDate,
-                dueDateNewMealPlan: p.dueDateNewMealPlan,
+                renewalStatus: p.renewalStatus,
                 paymentUrlNewMealPlan: p.paymentUrlNewMealPlan,
                 status: p.status,
               }))}
