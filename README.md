@@ -92,6 +92,7 @@ Depois que existe algum admin, as variáveis são **ignoradas**: mudar `ADMIN_PA
    - Build: `pnpm install && pnpm build`
    - Start: `pnpm start`
    - Porta do app: `5000`
+   - Versão do Node: o `nixpacks.toml` fixa o Node 22 (o Next.js 16 exige 20.9 ou mais novo; sem esse arquivo o Nixpacks usa o 18 e o build falha).
 4. Em `DATABASE_URL`, use a **URL interna** do serviço MySQL. Em `FORMS_INTERNAL_URL`, a URL interna do `v0-tami-forms`.
 5. Cadastre as variáveis da seção 4.
 6. Health check: caminho `/api/health` (200 com o banco acessível, 503 sem).
