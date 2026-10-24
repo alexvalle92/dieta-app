@@ -162,3 +162,101 @@ describe("formsClient.submitRenewal", () => {
     expect(await client.submitRenewal(body)).toEqual({ ok: false })
   })
 })
+
+describe("formsClient.retry", () => {
+  const json = (payload: unknown, status = 200) =>
+    new Response(JSON.stringify(payload), { status, headers: { "content-type": "application/json" } })
+  const makeClient = (fetchImpl: typeof fetch, log = fakeLog(), timeoutMs?: number) =>
+    createFormsClient({ baseUrl: "http://forms:5000", token: TOKEN, fetchImpl, timeoutMs, log })
+
+  it.each([{ paymentId: "p1" }, { planGenerationId: "g1" }, { notificationId: "n1" }])(
+    "faz POST em /api/jobs/retry com o Bearer e o corpo %o",
+    async (target) => {
+      const fetchImpl = vi.fn(async (_url: string | URL | Request, _init?: RequestInit) => json({ ok: true, reopened: 1 }))
+      const client = makeClient(fetchImpl as unknown as typeof fetch)
+
+      expect(await client.retry(target)).toEqual({ ok: true, reopened: 1 })
+
+      const [url, init] = fetchImpl.mock.calls[0]
+      expect(url).toBe("http://forms:5000/api/jobs/retry")
+      expect(init?.method).toBe("POST")
+      const headers = new Headers(init?.headers)
+      expect(headers.get("authorization")).toBe(`Bearer ${TOKEN}`)
+      expect(headers.get("content-type")).toBe("application/json")
+      expect(JSON.parse(String(init?.body))).toEqual(target)
+    },
+  )
+
+  it("reopened 0 (item já reaberto) → { ok: true, reopened: 0 }", async () => {
+    const client = makeClient((async () => json({ ok: true, reopened: 0 })) as unknown as typeof fetch)
+
+    expect(await client.retry({ paymentId: "p1" })).toEqual({ ok: true, reopened: 0 })
+  })
+
+  it.each([401, 404, 500])("status %i → { ok: false } e warn forms.retry.failed { status }", async (status) => {
+    const log = fakeLog()
+    const client = makeClient((async () => json({ ok: false }, status)) as unknown as typeof fetch, log)
+
+    expect(await client.retry({ paymentId: "p1" })).toEqual({ ok: false })
+    expect(log.warn).toHaveBeenCalledWith("forms.retry.failed", { status })
+  })
+
+  it.each([{}, { ok: false }, { ok: true }, { ok: true, reopened: -1 }, { ok: true, reopened: 1.5 }, { ok: true, reopened: "1" }])(
+    "corpo inesperado %o → { ok: false } e warn com reason unexpected_body",
+    async (payload) => {
+      const log = fakeLog()
+      const client = makeClient((async () => json(payload)) as unknown as typeof fetch, log)
+
+      expect(await client.retry({ paymentId: "p1" })).toEqual({ ok: false })
+      expect(log.warn).toHaveBeenCalledWith("forms.retry.failed", { status: 200, reason: "unexpected_body" })
+    },
+  )
+
+  it("JSON inválido na resposta → { ok: false }", async () => {
+    const log = fakeLog()
+    const client = makeClient((async () => new Response("não é json", { status: 200 })) as unknown as typeof fetch, log)
+
+    expect(await client.retry({ paymentId: "p1" })).toEqual({ ok: false })
+    expect(log.warn).toHaveBeenCalledWith("forms.retry.failed", expect.anything())
+  })
+
+  it("erro de rede → { ok: false } e warn { error: err.name }", async () => {
+    const log = fakeLog()
+    const client = makeClient((async () => {
+      throw new TypeError("fetch failed")
+    }) as unknown as typeof fetch, log)
+
+    expect(await client.retry({ paymentId: "p1" })).toEqual({ ok: false })
+    expect(log.warn).toHaveBeenCalledWith("forms.retry.failed", { error: "TypeError" })
+  })
+
+  it("tempo esgotado → { ok: false }", async () => {
+    const log = fakeLog()
+    const fetchImpl = vi.fn(
+      (_url: string | URL | Request, init?: RequestInit) =>
+        new Promise<Response>((_resolve, reject) => {
+          init?.signal?.addEventListener("abort", () => reject(new DOMException("aborted", "AbortError")))
+        }),
+    )
+    const client = makeClient(fetchImpl as unknown as typeof fetch, log, 20)
+
+    expect(await client.retry({ paymentId: "p1" })).toEqual({ ok: false })
+    expect(log.warn).toHaveBeenCalledWith("forms.retry.failed", { error: "AbortError" })
+  })
+
+  it("nenhum warn traz o token, a URL nem o id", async () => {
+    const log = fakeLog()
+    const failing: typeof fetch[] = [
+      (async () => json({ ok: false }, 500)) as unknown as typeof fetch,
+      (async () => json({})) as unknown as typeof fetch,
+      (async () => {
+        throw new TypeError("fetch failed")
+      }) as unknown as typeof fetch,
+    ]
+    for (const fetchImpl of failing) await makeClient(fetchImpl, log).retry({ paymentId: "p1" })
+
+    const logged = JSON.stringify((log.warn as ReturnType<typeof vi.fn>).mock.calls)
+    expect(logged).toContain("forms.retry.failed")
+    for (const secret of [TOKEN, "forms:5000", "p1"]) expect(logged).not.toContain(secret)
+  })
+})
