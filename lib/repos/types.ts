@@ -253,3 +253,53 @@ export type PatientRecord = {
 export interface PatientRecordRepo {
   get(patientId: string): Promise<PatientRecord | null>
 }
+
+export type FailedItemType = "payment" | "plan_generation" | "notification"
+
+/** `last_error` de uma falha, só com os campos de tipo certo. `step` e `message` são obrigatórios. */
+export type FailedLastError = {
+  step: string
+  message: string
+  attempt?: number
+  at?: string
+  httpStatus?: number
+  responseBody?: string
+}
+
+export type FailedItem = {
+  type: FailedItemType
+  id: string
+  patient: { id: string; name: string; email: string }
+  lastError: FailedLastError | null
+  /** `sync_attempts` na cobrança; `attempts` nas outras. */
+  attempts: number
+  createdAt: Date
+  updatedAt: Date
+  /** Só em `notification`. */
+  channel?: Channel
+  kind?: string
+}
+
+export type LogLevel = "info" | "warn" | "error"
+
+/** `from` incluído, `to` excluído; `page` começa em 1. */
+export type AppLogFilter = { from: Date; to: Date; area?: string; levels: LogLevel[]; page: number }
+
+export type AppLogRow = {
+  id: number
+  ts: Date
+  level: string
+  event: string
+  area: string
+  fields: Record<string, unknown>
+}
+
+/** `areas`: as áreas do período e dos níveis pedidos, sem o filtro de área (alimenta o seletor). */
+export type AppLogPage = { rows: AppLogRow[]; total: number; areas: string[] }
+
+/** Leitura das falhas reexecutáveis e dos logs de erro do servidor (tela de erros do admin). */
+export interface FailuresRepo {
+  /** Cobranças `ASAAS_FAILED`, gerações e mensagens `failed`: no máximo 200 por tipo, `updatedAt` decrescente. */
+  listFailed(): Promise<FailedItem[]>
+  listAppLogs(f: AppLogFilter): Promise<AppLogPage>
+}

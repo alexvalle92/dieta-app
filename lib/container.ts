@@ -6,6 +6,7 @@ import { createFormsClient, type FormsClient } from "@/lib/forms-client"
 import { createRateLimiter, type RateLimiter } from "@/lib/http/rate-limit"
 import { createLogger, type Logger } from "@/lib/log"
 import { createAdminRepo } from "@/lib/repos/admins"
+import { createFailuresRepo } from "@/lib/repos/failures"
 import { createMealConfigRepo } from "@/lib/repos/meal-config"
 import { createMealPlanRepo } from "@/lib/repos/meal-plans"
 import { createPatientRecordRepo } from "@/lib/repos/patient-record"
@@ -17,6 +18,7 @@ import { createStatsRepo } from "@/lib/repos/stats"
 import type {
   AdminRepo,
   Channel,
+  FailuresRepo,
   MealConfigRepo,
   MealPlanRepo,
   PatientRecordRepo,
@@ -59,6 +61,7 @@ export type Container = {
     mealConfig: MealConfigRepo
     patientRecord: PatientRecordRepo
     renewals: RenewalRepo
+    failures: FailuresRepo
   }
   channels: Channel[]
   loginPatient: ReturnType<typeof createLoginPatient>
@@ -102,12 +105,13 @@ function buildContainer(): Container {
   const mealConfig = createMealConfigRepo(db)
   const patientRecord = createPatientRecordRepo(db)
   const renewals = createRenewalRepo(db)
+  const failures = createFailuresRepo(db)
   const forms = createFormsClient({ baseUrl: env.FORMS_INTERNAL_URL, token: env.JOBS_TOKEN, log })
 
   return {
     env,
     log,
-    repos: { patients, admins, resetTokens, mealPlans, stats, recipes, mealConfig, patientRecord, renewals },
+    repos: { patients, admins, resetTokens, mealPlans, stats, recipes, mealConfig, patientRecord, renewals, failures },
     channels,
     loginPatient: createLoginPatient({ patients, verifyPassword, dummyHash: DUMMY_HASH }),
     loginAdmin: createLoginAdmin({ admins, verifyPassword, dummyHash: DUMMY_HASH }),

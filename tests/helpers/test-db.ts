@@ -34,7 +34,7 @@ export async function truncateAll(pool: mysql.Pool): Promise<void> {
   try {
     await connection.query("SET FOREIGN_KEY_CHECKS=0")
     const [rows] = await connection.query<mysql.RowDataPacket[]>(
-      "SELECT table_name AS name FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name <> '__drizzle_migrations'",
+      "SELECT table_name AS name FROM information_schema.tables WHERE table_schema = DATABASE() AND table_type = 'BASE TABLE' AND table_name <> '__drizzle_migrations'",
     )
     for (const row of rows) await connection.query(`TRUNCATE TABLE \`${row.name}\``)
   } finally {
