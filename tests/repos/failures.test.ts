@@ -32,6 +32,13 @@ describe("toFailedLastError", () => {
     })
   })
 
+  it.each(["ontem", "", "24/13/2026", "2026-10-24T99:00:00.000Z"])(
+    "descarta `at` que não é uma data válida (%j), para a tela não quebrar ao formatar",
+    (at) => {
+      expect(toFailedLastError({ step: "x", message: "m", attempt: 1, at })).toEqual({ step: "x", message: "m", attempt: 1 })
+    },
+  )
+
   it("sem step ou sem message em texto → null", () => {
     for (const raw of [null, "texto", [], { message: "m" }, { step: "x" }, { step: 1, message: "m" }]) {
       expect(toFailedLastError(raw)).toBeNull()

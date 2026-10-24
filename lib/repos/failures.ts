@@ -18,7 +18,8 @@ export function toFailedLastError(raw: unknown): FailedLastError | null {
     step: r.step,
     message: r.message,
     ...(typeof r.attempt === "number" ? { attempt: r.attempt } : {}),
-    ...(typeof r.at === "string" ? { at: r.at } : {}),
+    // Data inválida lançaria RangeError ao formatar na tela e derrubaria a lista inteira.
+    ...(typeof r.at === "string" && !Number.isNaN(Date.parse(r.at)) ? { at: r.at } : {}),
     ...(typeof r.httpStatus === "number" ? { httpStatus: r.httpStatus } : {}),
     ...(typeof r.responseBody === "string" ? { responseBody: r.responseBody } : {}),
   }
