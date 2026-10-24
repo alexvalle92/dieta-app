@@ -11,6 +11,7 @@ import { mysqlTestsEnabled, openTestDb, truncateAll } from "../helpers/test-db"
 
 const eqPatient = (id: string) => eq(patients.id, id)
 const eqPayment = (id: string) => eq(payments.id, id)
+const FAR_FUTURE = new Date("2099-01-01T12:00:00.000Z")
 const at = (day: number) => new Date(`2026-10-${String(day).padStart(2, "0")}T12:00:00.000Z`)
 
 describe.skipIf(!mysqlTestsEnabled)("PatientRecordRepo (MySQL)", () => {
@@ -114,8 +115,9 @@ describe.skipIf(!mysqlTestsEnabled)("PatientRecordRepo (MySQL)", () => {
       answers: { peso_kg: "65" },
       firstQuiz: false,
       paymentId,
-      createdAt: at(20),
-      updatedAt: at(20),
+      // Mais nova que a resposta do seed (que usa a data de hoje), seja qual for o dia em que o teste rode.
+      createdAt: FAR_FUTURE,
+      updatedAt: FAR_FUTURE,
     })
     await addNotification(patientId, { createdAt: at(11) })
     await addNotification(patientId, { createdAt: at(15) })
