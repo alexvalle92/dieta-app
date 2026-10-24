@@ -4,7 +4,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
-import { LayoutDashboard, Users, FileText, BookOpen, Settings } from "lucide-react"
+import { LayoutDashboard, Users, FileText, BookOpen, Settings, AlertTriangle } from "lucide-react"
 import { UserMenu } from "@/components/user-menu"
 
 export function AdminNav() {
@@ -27,6 +27,7 @@ export function AdminNav() {
     { href: "/admin/pacientes", label: "Pacientes", icon: Users },
     { href: "/admin/planos", label: "Planos", icon: FileText },
     { href: "/admin/receitas", label: "Receitas", icon: BookOpen },
+    { href: "/admin/erros", label: "Erros", icon: AlertTriangle },
     { href: "/admin/configuracoes", label: "Configurações", icon: Settings },
   ]
 
