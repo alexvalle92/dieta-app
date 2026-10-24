@@ -9,6 +9,8 @@ O PlanA é a continuação do quiz (`v0-tami-forms`). O quiz recebe as respostas
 - **Cliente:** entra com CPF e senha, é obrigado a trocar a senha temporária no primeiro acesso, vê o plano ativo e os anteriores, as receitas liberadas e seus dados. Recupera a senha por link enviado por e-mail e WhatsApp.
 - **Admin:** cadastra pacientes, planos, receitas e configurações de refeição, redefine senhas e consulta o cadastro completo de cada paciente (respostas do quiz, cobranças, planos e mensagens).
 
+**Erros (`/admin/erros`).** Duas abas. **Falhas** lista as cobranças (`ASAAS_FAILED`), gerações de plano e mensagens (`failed`) que esgotaram as tentativas, com o `last_error`, o paciente e uma dica da causa provável; o botão **Reexecutar** (com confirmação) pede ao `v0-tami-forms` o `POST /api/jobs/retry` daquele item. **Logs de erro** mostra, só para leitura, os `warn`/`error` do servidor gravados em `app_logs` nos últimos 90 dias, com filtro de período, área e nível. Não há descarte de falha nem reexecução em lote.
+
 **Vencimento e renovação.** O plano alimentar vale 30 dias. Faltando 5 dias, 2 dias e no dia do vencimento, o paciente recebe um aviso por e-mail e por WhatsApp (uma vez por plano e estágio, só entre 9h e 20h de São Paulo) e vê um alerta na tela do plano. A partir de 2 dias antes do vencimento, e também depois dele, abre o formulário de atualização em `/cliente/planos/[id]/renovar`: as 16 respostas do quiz que alimentam a IA, já preenchidas com as últimas respostas (peso atual e meta de peso sempre em branco). O PlanA entrega o formulário ao `v0-tami-forms` (`POST /api/renewals`), que cria a cobrança no Asaas e devolve o link de pagamento. Quando o pagamento é confirmado, o `v0-tami-forms` gera o plano novo, conclui o anterior e avisa o paciente. Plano vencido continua `active`, e o paciente continua vendo o conteúdo, até ser substituído.
 
 O estado da renovação (`none`, `awaiting_payment`, `payment_expired` ou `paid`) é lido da tabela `payments` a cada consulta, pela mesma regra nos dois apps. Enquanto está `paid`, o paciente não vê pedido de pagamento nem consegue enviar o formulário de novo.
@@ -100,6 +102,10 @@ Depois que existe algum admin, as variáveis são **ignoradas**: mudar `ADMIN_PA
 
 Se o PlanA subir antes do `v0-tami-forms` num banco novo, ele encerra com `boot.schema_missing` listando as tabelas que faltam; o Easypanel o reinicia até o banco estar pronto.
 
+### Deploy da página de erros
+
+A página `/admin/erros` lê `app_logs`, e a cópia do schema deste repositório passou a incluir `app_logs`, `funnel_sessions` e `funnel_events`. O boot confere essas tabelas: um banco sem elas faz o PlanA encerrar com `boot.schema_missing`. Elas vêm das migrations `0004` e `0005` do `v0-tami-forms` (observabilidade do funil), então o `v0-tami-forms` com a observabilidade sobe **antes** deste deploy. Não há variável de ambiente nova.
+
 ### Deploy da renovação
 
 O vencimento e a renovação não pedem variável de ambiente nova em nenhum dos dois apps (o valor da renovação é o `PAYMENT_AMOUNT` do quiz). O PlanA chama o `v0-tami-forms` com `FORMS_INTERNAL_URL` e `JOBS_TOKEN`, que já existem.
@@ -167,3 +173,8 @@ CREATE DATABASE plana_test CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 
 - Spec: `docs/superpowers/specs/2026-10-12-vencimento-renovacao-design.md`
 - Plano: `docs/superpowers/plans/2026-10-12-vencimento-renovacao.md`
+
+O painel de erros do admin:
+
+- Spec: `docs/superpowers/specs/2026-10-24-painel-erros-design.md`
+- Plano: `docs/superpowers/plans/2026-10-24-painel-erros.md`
