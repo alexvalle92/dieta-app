@@ -89,8 +89,8 @@ type FailedItem = {
   lastError: {
     step: string
     message: string
-    attempt: number
-    at: string
+    attempt?: number
+    at?: string
     httpStatus?: number
     responseBody?: string
   } | null
@@ -112,7 +112,7 @@ Três consultas, cada uma com `INNER JOIN patients` e `ORDER BY updated_at DESC 
 - `plan_generations WHERE status = 'failed'`;
 - `notifications WHERE status = 'failed'`.
 
-As três listas são unidas e ordenadas por `updatedAt` decrescente. O `last_error` vem do JSON da coluna. O repositório só aproveita os campos da seção 4.1 com o tipo certo e ignora o resto; um `last_error` sem `step` ou sem `message` em texto vira `null`.
+As três listas são unidas e ordenadas por `updatedAt` decrescente. O `last_error` vem do JSON da coluna. O repositório só aproveita os campos da seção 4.1 com o tipo certo e ignora o resto (um `httpStatus` em texto, por exemplo, some); um `last_error` sem `step` ou sem `message` em texto vira `null`. Na tela, "tentativa N" e a data só aparecem quando vierem.
 
 ### 4.3 `listAppLogs(filtro)`
 
