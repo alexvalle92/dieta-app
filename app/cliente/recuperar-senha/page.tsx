@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
-import { toast } from "sonner"
+import { toast, Toaster } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -69,8 +69,10 @@ export default function RecuperarSenhaPage() {
       setNewPassword('')
       setConfirmPassword('')
       
+      // Navegação completa: o cache do router guarda o prefetch de /cliente/dashboard feito com a
+      // sessão antiga, que o middleware desviou para cá; router.push reaproveitaria esse desvio.
       setTimeout(() => {
-        router.push('/cliente/dashboard')
+        window.location.assign('/cliente/dashboard')
       }, 1500)
     } catch (error) {
       toast.error("Ocorreu um erro ao redefinir a senha. Tente novamente.")
@@ -142,6 +144,7 @@ export default function RecuperarSenhaPage() {
           </form>
         </CardContent>
       </Card>
+      <Toaster richColors position="top-center" />
     </div>
   )
 }
