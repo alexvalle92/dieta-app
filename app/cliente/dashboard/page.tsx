@@ -17,7 +17,7 @@ import {
   Loader2,
   CheckCircle,
   ChevronRight,
-  UtensilsCrossed,
+  Utensils,
 } from "lucide-react";
 import Link from "next/link";
 import { Suspense, useEffect, useState } from "react";
@@ -209,7 +209,7 @@ function ClientDashboardContent() {
                   </div>
                   <Link href="/cliente/meu-plano">
                     <Button className="w-full" size="lg">
-                      <UtensilsCrossed className="mr-2 h-4 w-4" />
+                      <Utensils className="mr-2 h-4 w-4" />
                       Abrir meu plano
                     </Button>
                   </Link>

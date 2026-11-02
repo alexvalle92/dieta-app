@@ -5,13 +5,13 @@ import Link from "next/link"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
-import { BookOpen, Home, UtensilsCrossed } from "lucide-react"
+import { BookOpen, Home, Utensils } from "lucide-react"
 import { UserMenu } from "@/components/user-menu"
 import { activeTab, type ClientTab } from "@/lib/client/nav"
 
 const NAV_ITEMS: ReadonlyArray<{ tab: ClientTab; href: string; label: string; icon: typeof Home }> = [
   { tab: "inicio", href: "/cliente/dashboard", label: "Início", icon: Home },
-  { tab: "plano", href: "/cliente/meu-plano", label: "Meu Plano", icon: UtensilsCrossed },
+  { tab: "plano", href: "/cliente/meu-plano", label: "Meu Plano", icon: Utensils },
   { tab: "receitas", href: "/cliente/receitas", label: "Receitas", icon: BookOpen },
 ]
 
