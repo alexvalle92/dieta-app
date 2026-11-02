@@ -6,7 +6,8 @@ Aplicação onde o cliente vê o plano alimentar depois de pagar, e onde a nutri
 
 O PlanA é a continuação do quiz (`v0-tami-forms`). O quiz recebe as respostas, cobra no Asaas e, quando o pagamento é confirmado, gera o plano alimentar e cria uma senha temporária. O PlanA é onde essa pessoa entra.
 
-- **Cliente:** entra com CPF e senha, é obrigado a trocar a senha temporária no primeiro acesso, vê o plano ativo e os anteriores, as receitas liberadas e seus dados. Recupera a senha por link enviado por e-mail e WhatsApp.
+- **Cliente:** entra com CPF e senha, é obrigado a trocar a senha temporária no primeiro acesso, vê o plano ativo e os anteriores, as receitas liberadas e seus dados. Recupera a senha por link enviado por e-mail e WhatsApp. No celular, a navegação fica no rodapé: **Início**, **Meu Plano** (no centro, abre direto o plano ativo em `/cliente/meu-plano`) e **Receitas**; "Meus dados", "Alterar senha" e "Sair" ficam no avatar do topo. No computador, as mesmas opções ficam no topo.
+- **Substituições:** toda refeição, menos o almoço, vem da IA com uma opção de substituição (`plan_data.meals[].substitutes`), que o paciente vê nos botões "Opção 1 | Opção 2" do card da refeição (no PDF saem as duas). O editor do admin mostra a substituição só para leitura e a preserva ao salvar.
 - **Admin:** cadastra pacientes, planos, receitas e configurações de refeição, redefine senhas e consulta o cadastro completo de cada paciente (respostas do quiz, cobranças, planos e mensagens).
 
 **Erros (`/admin/erros`).** Duas abas. **Falhas** lista as cobranças (`ASAAS_FAILED`), gerações de plano e mensagens (`failed`) que esgotaram as tentativas, com o `last_error`, o paciente e uma dica da causa provável; o botão **Reexecutar** (com confirmação) pede ao `v0-tami-forms` o `POST /api/jobs/retry` daquele item. **Logs de erro** mostra, só para leitura, os `warn`/`error` do servidor gravados em `app_logs` nos últimos 90 dias, com filtro de período, área e nível. Não há descarte de falha nem reexecução em lote.
@@ -117,6 +118,15 @@ O vencimento e a renovação não pedem variável de ambiente nova em nenhum dos
 
 No primeiro deploy, todo plano ativo que já está dentro de um estágio de aviso (0 a 5 dias para vencer) recebe a mensagem desse estágio na primeira rodada do job entre 9h e 20h de São Paulo, menos os planos cuja renovação já está paga (a cobrança criada depois do plano já foi paga e o plano novo está a caminho): esses não recebem aviso. Fora dessa janela nenhuma rodada enfileira aviso, nem a disparada à mão por `/api/jobs/run`.
 
+### Deploy das opções de substituição
+
+Sem migration e sem variável de ambiente nova: `substitutes` é um campo opcional dentro de `plan_data`.
+
+1. Suba o PlanA **primeiro**. Ele mostra as substituições e o editor do admin as preserva. Se o `v0-tami-forms` gerasse substituições antes, o paciente não as veria, e um admin que salvasse o plano as apagaria.
+2. Depois, suba o `v0-tami-forms`.
+
+Os planos que já existem continuam sem substituição; só os gerados depois do deploy do `v0-tami-forms` as têm.
+
 ## 7. Schema
 
 `lib/db/schema.ts` é uma **cópia** de `../v0-tami-forms/lib/db/schema.ts`, que é a fonte. O PlanA não tem migrations. Depois de mudar o schema no `v0-tami-forms`:
@@ -178,3 +188,8 @@ O painel de erros do admin:
 
 - Spec: `docs/superpowers/specs/2026-10-24-painel-erros-design.md`
 - Plano: `docs/superpowers/plans/2026-10-24-painel-erros.md`
+
+A navegação para celular e as opções de substituição:
+
+- Spec: `docs/superpowers/specs/2026-11-02-navegacao-mobile-substituicoes-design.md`
+- Plano: `docs/superpowers/plans/2026-11-02-navegacao-mobile-substituicoes.md`

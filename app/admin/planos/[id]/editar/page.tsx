@@ -23,6 +23,7 @@ import {
 import { ArrowLeft, Plus, Trash2, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
+import { readSubstitutes, toMealPayload, type MealSubstitute } from "@/lib/admin/meal-substitutes"
 
 interface Patient {
   id: string
@@ -35,6 +36,7 @@ interface Meal {
   time: string
   calories: string
   foods: string
+  substitutes: MealSubstitute[]
 }
 
 interface MealPlan {
@@ -107,10 +109,11 @@ export default function EditarPlanoPage({ params }: { params: Promise<{ id: stri
             name: meal.name || '',
             time: meal.time || '',
             calories: meal.calories || '',
-            foods: meal.foods || ''
+            foods: meal.foods || '',
+            substitutes: readSubstitutes(meal)
           })))
         } else {
-          setMeals([{ id: '1', name: '', time: '', calories: '', foods: '' }])
+          setMeals([{ id: '1', name: '', time: '', calories: '', foods: '', substitutes: [] }])
         }
       } else {
         toast.error(data.error || 'Erro ao carregar plano')
@@ -145,7 +148,8 @@ export default function EditarPlanoPage({ params }: { params: Promise<{ id: stri
       name: '',
       time: '',
       calories: '',
-      foods: ''
+      foods: '',
+      substitutes: []
     }
     setMeals([...meals, newMeal])
   }
@@ -158,7 +162,7 @@ export default function EditarPlanoPage({ params }: { params: Promise<{ id: stri
     }
   }
 
-  const updateMeal = (id: string, field: keyof Meal, value: string) => {
+  const updateMeal = (id: string, field: 'name' | 'time' | 'calories' | 'foods', value: string) => {
     setMeals(meals.map(meal => 
       meal.id === id ? { ...meal, [field]: value } : meal
     ))
@@ -193,12 +197,7 @@ export default function EditarPlanoPage({ params }: { params: Promise<{ id: stri
     try {
       const plan_data = {
         calories: parseInt(formData.calories),
-        meals: meals.map(meal => ({
-          name: meal.name,
-          time: meal.time,
-          calories: meal.calories,
-          foods: meal.foods
-        })),
+        meals: meals.map(toMealPayload),
         observations: formData.observations
       }
 
@@ -507,6 +506,21 @@ export default function EditarPlanoPage({ params }: { params: Promise<{ id: stri
                           disabled={isSubmitting}
                         />
                       </div>
+                      {meal.substitutes.map((sub, idx) => (
+                        <div key={idx} className="rounded-md border border-dashed bg-muted/40 p-3">
+                          <p className="mb-2 text-sm font-medium text-muted-foreground">
+                            Substituição (gerada pela IA)
+                          </p>
+                          <ul className="space-y-1 text-sm">
+                            {sub.foods.split('\n').filter(line => line.trim()).map((line, i) => (
+                              <li key={i}>{line.trim()}</li>
+                            ))}
+                          </ul>
+                          {sub.calories && (
+                            <p className="mt-2 text-right text-xs text-muted-foreground">~{sub.calories} kcal</p>
+                          )}
+                        </div>
+                      ))}
                     </CardContent>
                   </Card>
                 ))}
