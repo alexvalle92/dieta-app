@@ -36,3 +36,8 @@ export function mealOptions(meal: unknown): MealOption[] {
 
   return [primary, ...alternatives]
 }
+
+/** Linhas de `plan_data.observations`; `[]` se não for texto. */
+export function observationLines(observations: unknown): string[] {
+  return foodLines(observations)
+}

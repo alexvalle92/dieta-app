@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { PlanExpirationAlert } from "@/components/plan-expiration-alert"
-import { mealOptions, type MealOption } from "@/lib/meal-plan/options"
+import { mealOptions, observationLines, type MealOption } from "@/lib/meal-plan/options"
 import type { RenewalStatus } from "@/lib/renewal/rules"
 
 export type ClientMealPlan = {
@@ -25,7 +25,7 @@ export type ClientMealPlan = {
   planData: {
     calories?: number
     meals?: unknown
-    observations?: string
+    observations?: unknown
   }
   createdAt: string
 }
@@ -127,7 +127,7 @@ export function MealPlanView({ plan, backHref }: { plan: ClientMealPlan; backHre
       return { name: text(fields.name), time: text(fields.time), options: mealOptions(meal) }
     })
     .filter((meal) => meal.options.length > 0)
-  const observations = plan.planData?.observations || ""
+  const observations = observationLines(plan.planData?.observations)
 
   return (
     <>
@@ -193,22 +193,19 @@ export function MealPlanView({ plan, backHref }: { plan: ClientMealPlan; backHre
         </div>
       )}
 
-      {observations && (
+      {observations.length > 0 && (
         <Card className="mt-6">
           <CardHeader>
             <CardTitle>Observações Importantes</CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="space-y-2">
-              {observations
-                .split("\n")
-                .filter((obs) => obs.trim())
-                .map((obs, index) => (
-                  <li key={index} className="flex items-start gap-2 text-foreground">
-                    <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-secondary" />
-                    <span>{obs.trim()}</span>
-                  </li>
-                ))}
+              {observations.map((obs, index) => (
+                <li key={index} className="flex items-start gap-2 text-foreground">
+                  <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-secondary" />
+                  <span>{obs}</span>
+                </li>
+              ))}
             </ul>
           </CardContent>
         </Card>

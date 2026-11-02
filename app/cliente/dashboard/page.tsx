@@ -27,6 +27,7 @@ import { PlanExpirationAlert } from "@/components/plan-expiration-alert";
 import { daysLeft, type RenewalStatus } from "@/lib/renewal/rules";
 import { todayInSaoPaulo } from "@/lib/time";
 import { expiryLabel } from "@/lib/client/expiry-label";
+import { noActivePlanMessage } from "@/lib/client/no-plan-message";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -152,6 +153,7 @@ function ClientDashboardContent() {
     : null;
   const expiryUrgent = expiry === "Vencido" || expiry === "Vence hoje";
   const previousPlans = recentPlans.filter((p) => p.id !== activePlan?.id);
+  const noPlan = noActivePlanMessage(allPlans.length);
 
   return (
     <ClientShell>
@@ -219,13 +221,14 @@ function ClientDashboardContent() {
               <Card className="border-muted">
                 <CardContent className="flex flex-col items-center justify-center py-8">
                   <FileText className="mb-4 h-12 w-12 text-muted-foreground" />
-                  <h3 className="mb-2 text-lg font-semibold">
-                    Nenhum plano alimentar encontrado
+                  <h3 className="mb-2 text-center text-lg font-semibold">
+                    {noPlan.title}
                   </h3>
-                  <p className="text-center text-muted-foreground">
-                    Seu nutricionista ainda não criou nenhum plano alimentar para
-                    você.
-                  </p>
+                  {noPlan.description && (
+                    <p className="text-center text-muted-foreground">
+                      {noPlan.description}
+                    </p>
+                  )}
                 </CardContent>
               </Card>
             )}
