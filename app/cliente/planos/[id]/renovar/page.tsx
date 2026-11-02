@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast, Toaster } from "sonner";
 import { ArrowLeft, CreditCard, Loader2 } from "lucide-react";
-import { ClientNav } from "@/components/client-nav";
+import { ClientShell } from "@/components/client-shell";
 import { RenewalForm } from "@/components/renewal-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -185,10 +185,9 @@ export default function RenovarPlanoPage({
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <ClientShell>
       <Toaster richColors position="top-center" />
-      <ClientNav />
       <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">{content}</main>
-    </div>
+    </ClientShell>
   );
 }

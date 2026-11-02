@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ClientNav } from "@/components/client-nav";
+import { ClientShell } from "@/components/client-shell";
 import {
   Card,
   CardContent,
@@ -113,20 +113,18 @@ export default function ClientPlanosPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <ClientNav />
+      <ClientShell>
         <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
         </main>
-      </div>
+      </ClientShell>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <ClientNav />
+    <ClientShell>
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground">
@@ -227,6 +225,6 @@ export default function ClientPlanosPage() {
           </div>
         )}
       </main>
-    </div>
+    </ClientShell>
   );
 }

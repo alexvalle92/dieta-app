@@ -1,6 +1,6 @@
 "use client";
 
-import { ClientNav } from "@/components/client-nav";
+import { ClientShell } from "@/components/client-shell";
 import {
   Card,
   CardContent,
@@ -163,9 +163,8 @@ function ClientDashboardContent() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <ClientShell>
       <Toaster richColors position="top-center" />
-      <ClientNav />
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground">
@@ -299,7 +298,7 @@ function ClientDashboardContent() {
           </>
         )}
       </main>
-    </div>
+    </ClientShell>
   );
 }
 

@@ -2,7 +2,7 @@
 
 import { use, useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { ClientNav } from "@/components/client-nav"
+import { ClientShell } from "@/components/client-shell"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -72,19 +72,17 @@ export default function ReceitaDetalhePage({ params }: { params: Promise<{ id: s
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <ClientNav />
+      <ClientShell>
         <main className="flex items-center justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </main>
-      </div>
+      </ClientShell>
     )
   }
 
   if (!recipe) {
     return (
-      <div className="min-h-screen bg-background">
-        <ClientNav />
+      <ClientShell>
         <Toaster />
         <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
           <Card>
@@ -98,15 +96,14 @@ export default function ReceitaDetalhePage({ params }: { params: Promise<{ id: s
             </CardContent>
           </Card>
         </main>
-      </div>
+      </ClientShell>
     )
   }
 
   const preparationSteps = recipe.preparation.split('\n').filter(step => step.trim())
 
   return (
-    <div className="min-h-screen bg-background">
-      <ClientNav />
+    <ClientShell>
       <Toaster />
       <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-6 print:hidden">
@@ -224,6 +221,6 @@ export default function ReceitaDetalhePage({ params }: { params: Promise<{ id: s
           </div>
         </div>
       </main>
-    </div>
+    </ClientShell>
   )
 }

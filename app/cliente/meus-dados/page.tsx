@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic'
 
-import { ClientNav } from "@/components/client-nav"
+import { ClientShell } from "@/components/client-shell"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { getSession } from "@/lib/auth/session"
 import { getContainer } from "@/lib/container"
@@ -48,8 +48,7 @@ export default async function MeusDadosPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <ClientNav />
+    <ClientShell>
       <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground">Meus Dados</h1>
@@ -120,6 +119,6 @@ export default async function MeusDadosPage() {
           </CardContent>
         </Card>
       </main>
-    </div>
+    </ClientShell>
   )
 }
