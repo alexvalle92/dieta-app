@@ -193,3 +193,5 @@ A navegação para celular e as opções de substituição:
 
 - Spec: `docs/superpowers/specs/2026-11-02-navegacao-mobile-substituicoes-design.md`
 - Plano: `docs/superpowers/plans/2026-11-02-navegacao-mobile-substituicoes.md`
+
+
