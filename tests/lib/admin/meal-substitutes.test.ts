@@ -27,6 +27,15 @@ describe("toMealPayload", () => {
     expect(toMealPayload({ ...meal, substitutes })).toEqual({ ...meal, substitutes })
   })
 
+  it("descarta substitutas com foods vazio ou só espaços", () => {
+    const substitutes = [
+      { foods: "  ", calories: "300" },
+      { foods: "Rap10 — 1 un", calories: "430" },
+    ]
+    expect(toMealPayload({ ...meal, substitutes })).toEqual({ ...meal, substitutes: [{ foods: "Rap10 — 1 un", calories: "430" }] })
+    expect("substitutes" in toMealPayload({ ...meal, substitutes: [{ foods: "", calories: "" }] })).toBe(false)
+  })
+
   it("sem substitutas, omite a chave", () => {
     expect(toMealPayload({ ...meal, substitutes: [] })).toEqual(meal)
     expect("substitutes" in toMealPayload({ ...meal, substitutes: [] })).toBe(false)

@@ -168,6 +168,26 @@ export default function EditarPlanoPage({ params }: { params: Promise<{ id: stri
     ))
   }
 
+  const updateSubstitute = (mealId: string, index: number, field: keyof MealSubstitute, value: string) => {
+    setMeals(meals.map(meal =>
+      meal.id === mealId
+        ? { ...meal, substitutes: meal.substitutes.map((sub, i) => i === index ? { ...sub, [field]: value } : sub) }
+        : meal
+    ))
+  }
+
+  const addSubstitute = (mealId: string) => {
+    setMeals(meals.map(meal =>
+      meal.id === mealId ? { ...meal, substitutes: [...meal.substitutes, { foods: '', calories: '' }] } : meal
+    ))
+  }
+
+  const removeSubstitute = (mealId: string, index: number) => {
+    setMeals(meals.map(meal =>
+      meal.id === mealId ? { ...meal, substitutes: meal.substitutes.filter((_, i) => i !== index) } : meal
+    ))
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -507,20 +527,54 @@ export default function EditarPlanoPage({ params }: { params: Promise<{ id: stri
                         />
                       </div>
                       {meal.substitutes.map((sub, idx) => (
-                        <div key={idx} className="rounded-md border border-dashed bg-muted/40 p-3">
-                          <p className="mb-2 text-sm font-medium text-muted-foreground">
-                            Substituição (gerada pela IA)
-                          </p>
-                          <ul className="space-y-1 text-sm">
-                            {sub.foods.split('\n').filter(line => line.trim()).map((line, i) => (
-                              <li key={i}>{line.trim()}</li>
-                            ))}
-                          </ul>
-                          {sub.calories && (
-                            <p className="mt-2 text-right text-xs text-muted-foreground">~{sub.calories} kcal</p>
-                          )}
+                        <div key={idx} className="space-y-3 rounded-md border border-dashed bg-muted/40 p-3">
+                          <div className="flex items-center justify-between">
+                            <p className="text-sm font-medium text-muted-foreground">
+                              Substituição {meal.substitutes.length > 1 ? idx + 1 : ''}
+                            </p>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeSubstitute(meal.id, idx)}
+                              disabled={isSubmitting}
+                              aria-label="Remover substituição"
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Alimentos</Label>
+                            <Textarea
+                              placeholder="Liste os alimentos da substituição (um por linha)"
+                              rows={4}
+                              value={sub.foods}
+                              onChange={(e) => updateSubstitute(meal.id, idx, 'foods', e.target.value)}
+                              disabled={isSubmitting}
+                            />
+                          </div>
+                          <div className="space-y-2 sm:w-1/2">
+                            <Label>Calorias</Label>
+                            <Input
+                              placeholder="350"
+                              value={sub.calories}
+                              onChange={(e) => updateSubstitute(meal.id, idx, 'calories', e.target.value)}
+                              disabled={isSubmitting}
+                            />
+                          </div>
                         </div>
                       ))}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="gap-2 bg-transparent"
+                        onClick={() => addSubstitute(meal.id)}
+                        disabled={isSubmitting}
+                      >
+                        <Plus className="h-4 w-4" />
+                        Adicionar Substituição
+                      </Button>
                     </CardContent>
                   </Card>
                 ))}

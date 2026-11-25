@@ -1,5 +1,6 @@
-// Substituições das refeições no editor do plano. Só a IA (`v0-tami-forms`) as cria; o editor não
-// as altera, mas precisa devolvê-las no `PUT`, senão salvar o plano as apagaria.
+// Substituições das refeições no editor do plano. A IA (`v0-tami-forms`) as cria e a nutricionista
+// pode alterá-las, removê-las ou incluir novas no editor; o `PUT` sempre as devolve, senão salvar o
+// plano as apagaria.
 
 export type MealSubstitute = { foods: string; calories: string }
 
@@ -23,8 +24,12 @@ export function readSubstitutes(meal: unknown): MealSubstitute[] {
   })
 }
 
-/** Refeição como vai no `plan_data`; sem substitutas, a chave não é enviada. */
+/**
+ * Refeição como vai no `plan_data`. Substitutas com `foods` vazio (deixadas em branco no editor)
+ * são descartadas; sem nenhuma restante, a chave não é enviada.
+ */
 export function toMealPayload(meal: EditorMeal): Record<string, unknown> {
-  const { name, time, calories, foods, substitutes } = meal
+  const { name, time, calories, foods } = meal
+  const substitutes = meal.substitutes.filter((sub) => sub.foods.trim() !== "")
   return substitutes.length > 0 ? { name, time, calories, foods, substitutes } : { name, time, calories, foods }
 }
